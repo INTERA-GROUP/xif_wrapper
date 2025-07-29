@@ -1,0 +1,11 @@
+# Simulation files
+*.f
+*.vvp
+*.vcd
+build
+result
+sim_build
+tb/cocotb/__pycache__
+utils/cocotb_lib/__pycache__
+*.dat
+tb/setup/*
