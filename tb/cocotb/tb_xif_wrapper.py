@@ -14,18 +14,87 @@ from cocotb.result import TestComplete
 from pyuvm import *
 import pyuvm
 from xif_utlis import *
+from typing import Optional
+instructions = [
+    {
+        "instr": 0b00000000000000000010000000001011,
+        "mask":  0b11111111111100000111000001111111,
+        "rs_valid_mask": 0b001,
+        "resp": x_issue_resp_t(
+            accept=True,
+            writeback=False,
+            dualwrite=False,
+            dualread=0,
+            loadstore=False,
+            ecswrite=False,
+            exc=False
+        )
+    },
+    {
+        "instr": 0b00000000000000000011000000001011,
+        "mask":  0b11111110000000000111000001111111,
+        "rs_valid_mask": 0b011,
+        "resp": x_issue_resp_t(True, False, False, 0, False, False, False)
+    },
+    {
+        "instr": 0b00101000000000000011000000001011,
+        "mask":  0b11111110000000000111000001111111,
+        "rs_valid_mask": 0b011,
+        "resp": x_issue_resp_t(True, False, False, 0, False, False, False)
+    },
+    {
+        "instr": 0b01010000000000000011000000001011,
+        "mask":  0b11111110000000000111000001111111,
+        "rs_valid_mask": 0b011,
+        "resp": x_issue_resp_t(True, False, False, 0, False, False, False)
+    },
+    {
+        "instr": 0b00000000000000000100000000001011,
+        "mask":  0b10000000000000000111000001111111,
+        "rs_valid_mask": 0b000,
+        "resp": x_issue_resp_t(True, True, False, 0, False, False, False)
+    },
+    {
+        "instr": 0b10000000000000000100000000001011,
+        "mask":  0b10000000000000000111000001111111,
+        "rs_valid_mask": 0b000,
+        "resp": x_issue_resp_t(True, True, False, 0, False, False, False)
+    },
+    {
+        "instr": 0b00000000000000000000000000000000,
+        "mask":  0b11111111111111111111111111111111,
+        "rs_valid_mask": 0b000,
+        "resp": x_issue_resp_t(False, False, False, 0, False, False, False)
+    }
+
+]
+
+
 # make cocotb_run TB_FRAMEWORK=COCOTB_TB
 # 
 class xif_issue_seqItem():
     def __init__(self,):
 
         self.issue_req = x_issue_req_t()
-
+        self.sel_instr = 0
     def randomize(self):
         # self.vaild = random.randint(0, 1)
-        self.issue_req.instr = random.randint(0, 255)
+        self.sel_instr = random.randint(0, len(instructions)-1) 
+        temp_mask= (instructions[self.sel_instr]["instr"]|instructions[self.sel_instr]["mask"])^ instructions[self.sel_instr]["mask"]
+        instr= temp_mask&random.randint(0,2**32) | instructions[self.sel_instr]["instr"]
+        self.issue_req.instr = instr
         self.issue_req.mode = random.randint(0, 3)
         self.issue_req.id  = random.randint(0, 3)
+        self.issue_req.rs_valid = instructions[self.sel_instr]["rs_valid_mask"]
+
+    def randomize_illegal(self):
+        self.sel_instr = len(instructions)-1
+        temp_mask= instructions[self.sel_instr]["instr"]^instructions[self.sel_instr]["mask"]
+        instr= temp_mask&random.randint(0,2**32) | instructions[self.sel_instr]["instr"]
+        self.issue_req.instr = instr
+        self.issue_req.mode = random.randint(0, 3)
+        self.issue_req.id  = random.randint(0, 3)
+        self.issue_req.rs_valid = instructions[self.sel_instr]["rs_valid_mask"]
 
 async def stop_after(timeout_ns):
     await Timer(timeout_ns, units='ns')
@@ -155,15 +224,59 @@ async def stop_after(timeout_ns):
 
 
 
+
 # @pyuvm.test()
 # class xifTest(xifTestBase):
 #     """Test xif with random"""
-async def send_req_eval():
-    print()
+async def eval_issue_resp(dut, interface_data):
+    # result =  bfm.get_result()
+    await FallingEdge(dut.clk_i)
+    issue_bfm=xif_issue_bfm()
+    commit_bfm = xif_commit_bfm()
+    result = issue_bfm.read_output()
+    cocotb.log.info(f'Dut resp: {result}')
+    cocotb.log.info(f'Data passing to the commit interface: {interface_data.issue_req}')
+    commit_req = x_commit_t()
+    commit_req.commit_kill= random.choice([0,1])
+    commit_req.id=0 #interface_data.issue_req.id
+    await commit_bfm.send_op(1,commit_req)
+    
+
+# @cocotb.test()
+# async def reset_test(dut):
+#     """reset test"""
+#     cocotb.start_soon(stop_after(1000))
+#     bfm = xif_issue_bfm()
+
+#     clock = Clock(dut.clk_i, 10, units="ns")
+#     cocotb.start_soon(clock.start())
+#     bfm.start_bfm()
+
+#     for sig in dut:
+#         print(sig._name)
+
+
+#     await bfm.reset()
+
+#     interface_data = xif_issue_seqItem()
+#     for id in range(10):
+#         interface_data.randomize()
+#         interface_data.issue_req.id = id
+#         await bfm.send_op(1,interface_data.issue_req)
+#         cocotb.log.info(f'Dut interface data in tb: {interface_data}')
+    
+#     await bfm.reset()
+    
+#     cocotb.log.info(f'Dut output read {bfm.read_output()}')
+#     for _ in range(10):
+#         await RisingEdge(dut.clk_i)
+
+
 
 @cocotb.test()
-async def reset_test(dut):
-    """reset test"""
+async def all_issue_illegel_without_commit(dut):
+    """All the instrucations passed are not accepted by the dut. There is not corresponding commit Vaild"""
+
     cocotb.start_soon(stop_after(1000))
     bfm = xif_issue_bfm()
 
@@ -178,9 +291,14 @@ async def reset_test(dut):
     await bfm.reset()
 
     interface_data = xif_issue_seqItem()
-    for _ in range(10):
-        interface_data.randomize()
+    
+    for id in range(10):
+        interface_data.randomize_illegal()
+        interface_data.issue_req.id = id
         await bfm.send_op(1,interface_data.issue_req)
+        issue_resp = bfm.read_output()
+        assert issue_resp == instructions[interface_data.sel_instr]["resp"] , \
+            f"Resp is diffenrt then the expected one"
         cocotb.log.info(f'Dut interface data in tb: {interface_data}')
     
     await bfm.reset()
@@ -188,5 +306,45 @@ async def reset_test(dut):
     cocotb.log.info(f'Dut output read {bfm.read_output()}')
     for _ in range(10):
         await RisingEdge(dut.clk_i)
+
+
+
     
+# @cocotb.test()
+# async def test_instr(dut):
+#     """Test instr"""
+#     cocotb.start_soon(stop_after(1000))
+#     bfm = xif_issue_bfm()
+#     bfm_commit = xif_commit_bfm()
+
+#     clock = Clock(dut.clk_i, 10, units="ns")
+#     cocotb.start_soon(clock.start())
+#     bfm.start_bfm()
+#     bfm_commit.start_bfm()
+
+#     for sig in dut:
+#         print(sig._name)
+
+
+#     await bfm.reset()
+#     for _ in range(3):
+#         await RisingEdge(dut.clk_i)
+
+#     interface_data = xif_issue_seqItem()
+#     for id in range(10):
+#         print(id)
+#         interface_data.randomize()
+#         # interface_data.randomize_illegal()
+#         interface_data.issue_req.id = id
+#         await bfm.send_op(1,copy.deepcopy(interface_data.issue_req))
+#         cocotb.start_soon(eval_issue_resp(dut,copy.deepcopy(interface_data)))
+#         # await send_req_eval(bfm,interface_data)
+#         cocotb.log.info(f'Dut interface data in tb: {interface_data.issue_req}')
+#         cocotb.log.info(f'instrucation select tb: {interface_data.sel_instr}')
+#         print(" ")
     
+#     await bfm.reset()
+    
+#     cocotb.log.info(f'Dut output read {bfm.read_output()}')
+#     for _ in range(10):
+#         await RisingEdge(dut.clk_i)
