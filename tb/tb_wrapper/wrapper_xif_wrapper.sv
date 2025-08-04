@@ -86,9 +86,13 @@ input logic rst_ni,
   output logic                    ext_if_coproc_result_exc,
   output logic [5:0]              ext_if_coproc_result_exccode,
   output logic                    ext_if_coproc_result_err,
-  output logic                    ext_if_coproc_result_dbg
+  output logic                    ext_if_coproc_result_dbg,
 
-
+  output logic wrapper_exe_instr_vaild,
+  output x_issue_t wrapper_exe_instr_issue,
+  input logic exe_wrapper_recv_instr_ready,
+  output logic wrapper_exe_recv_result_ready,
+  input x_issue_fifo_res_t exe_wrapper_result
 
 );
 
@@ -185,8 +189,11 @@ input logic rst_ni,
   assign ext_if.result.err                  = ext_if_coproc_result_err;
   assign ext_if.result.dbg                  = ext_if_coproc_result_dbg;
 
-
-    
+  assign wrapper_exe_instr_vaild =  xif_exe_inst.wrapper_exe_instr_vaild;
+  assign wrapper_exe_instr_issue = xif_exe_inst.wrapper_exe_instr_issue;
+  assign xif_exe_inst.exe_wrapper_recv_instr_ready = exe_wrapper_recv_instr_ready;
+  assign wrapper_exe_recv_result_ready = xif_exe_inst.wrapper_exe_recv_result_ready;
+  assign xif_exe_inst.exe_wrapper_result = exe_wrapper_result;
       // Module with custom instruction
       
     xif_wrapper  xif_wrapper_inst (

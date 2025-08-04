@@ -95,6 +95,16 @@ class xif_issue_seqItem():
         self.issue_req.mode = random.randint(0, 3)
         self.issue_req.id  = random.randint(0, 3)
         self.issue_req.rs_valid = instructions[self.sel_instr]["rs_valid_mask"]
+    
+    def randomize_valid(self):
+        # self.vaild = random.randint(0, 1)
+        self.sel_instr = random.randint(0, len(instructions)-2) 
+        temp_mask= (instructions[self.sel_instr]["instr"]|instructions[self.sel_instr]["mask"])^ instructions[self.sel_instr]["mask"]
+        instr= temp_mask&random.randint(0,2**32) | instructions[self.sel_instr]["instr"]
+        self.issue_req.instr = instr
+        self.issue_req.mode = random.randint(0, 3)
+        self.issue_req.id  = random.randint(0, 3)
+        self.issue_req.rs_valid = instructions[self.sel_instr]["rs_valid_mask"]
 
 async def stop_after(timeout_ns):
     await Timer(timeout_ns, units='ns')
@@ -228,19 +238,27 @@ async def stop_after(timeout_ns):
 # @pyuvm.test()
 # class xifTest(xifTestBase):
 #     """Test xif with random"""
-async def eval_issue_resp(dut, interface_data):
-    # result =  bfm.get_result()
-    await FallingEdge(dut.clk_i)
+async def populate_commit_interface(dut, interface_data):
+    # await FallingEdge(dut.clk_i)
     issue_bfm=xif_issue_bfm()
     commit_bfm = xif_commit_bfm()
     result = issue_bfm.read_output()
     cocotb.log.info(f'Dut resp: {result}')
     cocotb.log.info(f'Data passing to the commit interface: {interface_data.issue_req}')
     commit_req = x_commit_t()
-    commit_req.commit_kill= random.choice([0,1])
-    commit_req.id=0 #interface_data.issue_req.id
+    commit_req.commit_kill= 0
+    commit_req.id= interface_data.issue_req.id
     await commit_bfm.send_op(1,commit_req)
-    
+
+
+async def compare_aync_issue_result(dut, interface_data):
+    bfm  = xif_issue_bfm()
+    await FallingEdge(dut.clk_i)
+    await Timer(1,units='ns')
+    issue_resp = bfm.read_output()
+    assert issue_resp == instructions[interface_data.sel_instr]["resp"] , \
+            f"Resp is diffrent then the expected one"
+
 
 # @cocotb.test()
 # async def reset_test(dut):
@@ -273,35 +291,82 @@ async def eval_issue_resp(dut, interface_data):
 
 
 
-@cocotb.test()
-async def all_issue_illegel_without_commit(dut):
-    """All the instrucations passed are not accepted by the dut. There is not corresponding commit Vaild"""
+# @cocotb.test()
+# async def all_issue_illegel_without_commit(dut):
+#     """All the instrucations passed are not accepted by the dut. There is not corresponding commit Vaild"""
 
+#     cocotb.start_soon(stop_after(1000))
+#     bfm = xif_issue_bfm()
+
+#     clock = Clock(dut.clk_i, 10, units="ns")
+#     cocotb.start_soon(clock.start())
+#     bfm.start_bfm()
+
+#     for sig in dut:
+#         print(sig._name)
+
+
+#     await bfm.reset()
+
+#     interface_data = xif_issue_seqItem()
+    
+#     for id in range(10):
+#         interface_data.randomize_illegal()
+#         interface_data.issue_req.id = id
+#         await bfm.send_op(1,interface_data.issue_req)
+#         issue_resp = bfm.read_output()
+#         assert issue_resp == instructions[interface_data.sel_instr]["resp"] , \
+#             f"Resp is diffenrt then the expected one"
+#         cocotb.log.info(f'Dut interface data in tb: {interface_data}')
+    
+   
+    
+#     cocotb.log.info(f'Dut output read {bfm.read_output()}')
+#     for _ in range(10):
+#         await RisingEdge(dut.clk_i)
+
+
+@cocotb.test()
+async def commit_interface_neg(dut):
+    """ send invaild commit signal"""
     cocotb.start_soon(stop_after(1000))
     bfm = xif_issue_bfm()
+    bfm_commit = xif_commit_bfm()
 
     clock = Clock(dut.clk_i, 10, units="ns")
     cocotb.start_soon(clock.start())
     bfm.start_bfm()
+    bfm_commit.start_bfm()
 
     for sig in dut:
         print(sig._name)
 
 
     await bfm.reset()
+    for _ in range(3):
+        await RisingEdge(dut.clk_i)
 
     interface_data = xif_issue_seqItem()
-    
-    for id in range(10):
-        interface_data.randomize_illegal()
+    for id in range(4):
+        print(id)
+        interface_data.randomize_valid()
+        # interface_data.randomize_illegal()
         interface_data.issue_req.id = id
-        await bfm.send_op(1,interface_data.issue_req)
-        issue_resp = bfm.read_output()
-        assert issue_resp == instructions[interface_data.sel_instr]["resp"] , \
-            f"Resp is diffenrt then the expected one"
-        cocotb.log.info(f'Dut interface data in tb: {interface_data}')
+        await bfm.send_op(1,copy.deepcopy(interface_data.issue_req))
+        cocotb.log.info(f'Dut interface data in tb: {interface_data.issue_req}')
+        interface_data.issue_req.id = 0b1111
+
+        cocotb.start_soon(populate_commit_interface(dut,copy.deepcopy(interface_data)))
+        # await send_req_eval(bfm,interface_data)
+        cocotb.log.info(f'instrucation select tb: {interface_data.sel_instr}')
+        cocotb.start_soon(compare_aync_issue_result(dut,copy.deepcopy(interface_data)))  
+        
+        print(" ")
     
-    await bfm.reset()
+    assert get_int(dut.wrapper_exe_instr_vaild) == 0,  \
+            f" Wrapper_exe_instr shouldnt be set as the commit_vaild isnt to instrucation_dispatched"
+
+    # await bfm.reset()
     
     cocotb.log.info(f'Dut output read {bfm.read_output()}')
     for _ in range(10):
