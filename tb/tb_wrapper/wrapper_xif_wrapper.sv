@@ -88,15 +88,29 @@ input logic rst_ni,
   output logic                    ext_if_coproc_result_err,
   output logic                    ext_if_coproc_result_dbg,
 
-  output logic wrapper_exe_instr_vaild,
-  output x_issue_t wrapper_exe_instr_issue,
+  output  logic wrapper_exe_instr_vaild,
+  output  logic [31:0]            wrapper_exe_instr_issue_req_instr,
+  output  logic [1:0]             wrapper_exe_instr_issue_req_mode,
+  output  logic [X_ID_WIDTH-1:0]  wrapper_exe_instr_issue_req_id,
+  output  logic [X_NUM_RS-1:0][X_RFR_WIDTH-1:0]wrapper_exe_instr_issue_req_rs,
+  output  logic [(X_RFR_WIDTH/32)*X_NUM_RS-1:0]wrapper_exe_instr_issue_req_rs_valid,
+  output  logic [5:0]             wrapper_exe_instr_issue_req_ecs,
+  output  logic                   wrapper_exe_instr_issue_req_ecs_valid,
+
+  output logic                   wrapper_exe_instr_issue_resp_accept,
+  output logic                   wrapper_exe_instr_issue_resp_writeback,
+  output logic                   wrapper_exe_instr_issue_resp_dualwrite,
+  output logic [2:0]             wrapper_exe_instr_issue_resp_dualread,
+  output logic                   wrapper_exe_instr_issue_resp_loadstore,
+  output logic                   wrapper_exe_instr_issue_resp_ecswrite,
+  output logic                   wrapper_exe_instr_issue_resp_exc,
   input logic exe_wrapper_recv_instr_ready,
   output logic wrapper_exe_recv_result_ready,
   input x_issue_fifo_res_t exe_wrapper_result
 
 );
 
-
+  x_issue_t wrapper_exe_instr_issue;
 
   if_xif #(
       .X_NUM_RS(X_NUM_RS),
@@ -191,6 +205,23 @@ input logic rst_ni,
 
   assign wrapper_exe_instr_vaild =  xif_exe_inst.wrapper_exe_instr_vaild;
   assign wrapper_exe_instr_issue = xif_exe_inst.wrapper_exe_instr_issue;
+
+  
+  assign wrapper_exe_instr_issue_req_instr = wrapper_exe_instr_issue.req.instr;
+  assign wrapper_exe_instr_issue_req_mode = wrapper_exe_instr_issue.req.mode;
+  assign wrapper_exe_instr_issue_req_id = wrapper_exe_instr_issue.req.id;
+  assign wrapper_exe_instr_issue_req_rs = wrapper_exe_instr_issue.req.rs;
+  assign wrapper_exe_instr_issue_req_rs_valid = wrapper_exe_instr_issue.req.rs_valid;
+  assign wrapper_exe_instr_issue_req_ecs = wrapper_exe_instr_issue.req.ecs;
+  assign wrapper_exe_instr_issue_req_ecs_valid = wrapper_exe_instr_issue.req.ecs_valid;
+  assign wrapper_exe_instr_issue_resp_accept = wrapper_exe_instr_issue.resp.accept;
+  assign wrapper_exe_instr_issue_resp_writeback = wrapper_exe_instr_issue.resp.writeback;
+  assign wrapper_exe_instr_issue_resp_dualwrite = wrapper_exe_instr_issue.resp.dualwrite;
+  assign wrapper_exe_instr_issue_resp_dualread = wrapper_exe_instr_issue.resp.dualread;
+  assign wrapper_exe_instr_issue_resp_loadstore = wrapper_exe_instr_issue.resp.loadstore;
+  assign wrapper_exe_instr_issue_resp_ecswrite = wrapper_exe_instr_issue.resp.ecswrite;
+  assign wrapper_exe_instr_issue_resp_exc = wrapper_exe_instr_issue.resp.exc;
+
   assign xif_exe_inst.exe_wrapper_recv_instr_ready = exe_wrapper_recv_instr_ready;
   assign wrapper_exe_recv_result_ready = xif_exe_inst.wrapper_exe_recv_result_ready;
   assign xif_exe_inst.exe_wrapper_result = exe_wrapper_result;
