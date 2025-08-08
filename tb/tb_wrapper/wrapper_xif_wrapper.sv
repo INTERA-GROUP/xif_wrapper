@@ -106,11 +106,29 @@ input logic rst_ni,
   output logic                   wrapper_exe_instr_issue_resp_exc,
   input logic exe_wrapper_recv_instr_ready,
   output logic wrapper_exe_recv_result_ready,
-  input x_issue_fifo_res_t exe_wrapper_result
+
+  input  logic [X_RFW_WIDTH     -1:0] exe_wrapper_result_result_data_exec_o,
+  input  logic                    exe_wrapper_result_result_valid_exec_o,
+  input  logic [31:0]            exe_wrapper_result_issue_exec_o_req_instr,
+  input  logic [1:0]             exe_wrapper_result_issue_exec_o_req_mode,
+  input  logic [X_ID_WIDTH-1:0]  exe_wrapper_result_issue_exec_o_req_id,
+  input  logic [X_NUM_RS-1:0][X_RFR_WIDTH-1:0]exe_wrapper_result_issue_exec_o_req_rs,
+  input  logic [(X_RFR_WIDTH/32)*X_NUM_RS-1:0]exe_wrapper_result_issue_exec_o_req_rs_valid,
+  input  logic [5:0]             exe_wrapper_result_issue_exec_o_req_ecs,
+  input  logic                   exe_wrapper_result_issue_exec_o_req_ecs_valid,
+  input logic                   exe_wrapper_result_issue_exec_o_resp_accept,
+  input logic                   exe_wrapper_result_issue_exec_o_resp_writeback,
+  input logic                   exe_wrapper_result_issue_exec_o_resp_dualwrite,
+  input logic [2:0]             exe_wrapper_result_issue_exec_o_resp_dualread,
+  input logic                   exe_wrapper_result_issue_exec_o_resp_loadstore,
+  input logic                   exe_wrapper_result_issue_exec_o_resp_ecswrite,
+  input logic                   exe_wrapper_result_issue_exec_o_resp_exc
+  
 
 );
 
   x_issue_t wrapper_exe_instr_issue;
+  x_issue_fifo_res_t exe_wrapper_result;
 
   if_xif #(
       .X_NUM_RS(X_NUM_RS),
@@ -192,16 +210,16 @@ input logic rst_ni,
   // Result interface
   assign ext_if_coproc_result_valid         = ext_if.result_valid;
   assign ext_if.result_ready                = ext_if_coproc_result_ready;
-  assign ext_if.result.id                   = ext_if_coproc_result_id;
-  assign ext_if.result.data                 = ext_if_coproc_result_data;
-  assign ext_if.result.rd                   = ext_if_coproc_result_rd;
-  assign ext_if.result.we                   = ext_if_coproc_result_we;
-  assign ext_if.result.ecsdata              = ext_if_coproc_result_ecsdata;
-  assign ext_if.result.ecswe                = ext_if_coproc_result_ecswe;
-  assign ext_if.result.exc                  = ext_if_coproc_result_exc;
-  assign ext_if.result.exccode              = ext_if_coproc_result_exccode;
-  assign ext_if.result.err                  = ext_if_coproc_result_err;
-  assign ext_if.result.dbg                  = ext_if_coproc_result_dbg;
+  assign ext_if_coproc_result_id = ext_if.result.id;
+  assign ext_if_coproc_result_data = ext_if.result.data;
+  assign ext_if_coproc_result_rd = ext_if.result.rd;
+  assign ext_if_coproc_result_we = ext_if.result.we;
+  assign ext_if_coproc_result_ecsdata = ext_if.result.ecsdata;
+  assign ext_if_coproc_result_ecswe = ext_if.result.ecswe;
+  assign ext_if_coproc_result_exc = ext_if.result.exc;
+  assign ext_if_coproc_result_exccode = ext_if.result.exccode;
+  assign ext_if_coproc_result_err = ext_if.result.err;
+  assign ext_if_coproc_result_dbg = ext_if.result.dbg;
 
   assign wrapper_exe_instr_vaild =  xif_exe_inst.wrapper_exe_instr_vaild;
   assign wrapper_exe_instr_issue = xif_exe_inst.wrapper_exe_instr_issue;
@@ -224,6 +242,24 @@ input logic rst_ni,
 
   assign xif_exe_inst.exe_wrapper_recv_instr_ready = exe_wrapper_recv_instr_ready;
   assign wrapper_exe_recv_result_ready = xif_exe_inst.wrapper_exe_recv_result_ready;
+
+  assign exe_wrapper_result.result_data_exec_o = exe_wrapper_result_result_data_exec_o;
+  assign exe_wrapper_result.result_valid_exec_o = exe_wrapper_result_result_valid_exec_o;
+  assign exe_wrapper_result.issue_exec_o.req.instr = exe_wrapper_result_issue_exec_o_req_instr;
+  assign exe_wrapper_result.issue_exec_o.req.mode = exe_wrapper_result_issue_exec_o_req_mode;
+  assign exe_wrapper_result.issue_exec_o.req.id = exe_wrapper_result_issue_exec_o_req_id;
+  assign exe_wrapper_result.issue_exec_o.req.rs = exe_wrapper_result_issue_exec_o_req_rs;
+  assign exe_wrapper_result.issue_exec_o.req.rs_valid = exe_wrapper_result_issue_exec_o_req_rs_valid;
+  assign exe_wrapper_result.issue_exec_o.req.ecs = exe_wrapper_result_issue_exec_o_req_ecs;
+  assign exe_wrapper_result.issue_exec_o.req.ecs_valid = exe_wrapper_result_issue_exec_o_req_ecs_valid;
+  assign exe_wrapper_result.issue_exec_o.resp.accept = exe_wrapper_result_issue_exec_o_resp_accept;
+  assign exe_wrapper_result.issue_exec_o.resp.writeback = exe_wrapper_result_issue_exec_o_resp_writeback;
+  assign exe_wrapper_result.issue_exec_o.resp.dualwrite = exe_wrapper_result_issue_exec_o_resp_dualwrite;
+  assign exe_wrapper_result.issue_exec_o.resp.dualread = exe_wrapper_result_issue_exec_o_resp_dualread;
+  assign exe_wrapper_result.issue_exec_o.resp.loadstore = exe_wrapper_result_issue_exec_o_resp_loadstore;
+  assign exe_wrapper_result.issue_exec_o.resp.ecswrite = exe_wrapper_result_issue_exec_o_resp_ecswrite;
+  assign exe_wrapper_result.issue_exec_o.resp.exc = exe_wrapper_result_issue_exec_o_resp_exc;
+
   assign xif_exe_inst.exe_wrapper_result = exe_wrapper_result;
       // Module with custom instruction
       
