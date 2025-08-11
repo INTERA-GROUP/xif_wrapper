@@ -83,6 +83,7 @@ class xif_issue_seqItem():
         self.issue_req = x_issue_req_t()
         self.sel_instr = 0
         self.rd = 0
+        self.valid = 1
     def randomize(self):
         # self.vaild = random.randint(0, 1)
         self.sel_instr = random.randint(0, len(instructions)-1) 
@@ -303,11 +304,11 @@ def read_xif_result_intf(dut):
 
 async def populate_commit_interface(dut, interface_data,kill=0):
     # await FallingEdge(dut.clk_i)
-    issue_bfm=xif_issue_bfm()
+    # issue_bfm=xif_issue_bfm()
     commit_bfm = xif_commit_bfm()
-    result = issue_bfm.read_output()
-    cocotb.log.info(f'Dut resp: {result}')
-    cocotb.log.info(f'Data passing to the commit interface: {interface_data.issue_req}')
+    # result = issue_bfm.read_output()
+    # cocotb.log.info(f'Dut resp: {result}')
+    # cocotb.log.info(f'Data passing to the commit interface: {interface_data.issue_req}')
     commit_req = x_commit_t()
     commit_req.commit_kill= kill
     commit_req.id= interface_data.issue_req.id
@@ -319,7 +320,16 @@ async def compare_aync_issue_result(dut, interface_data):
     await FallingEdge(dut.clk_i)
     await Timer(1,units='ns')
     issue_resp = bfm.read_output()
-    assert issue_resp == instructions[interface_data.sel_instr]["resp"] , \
+
+    cocotb.log.info(f'compare_aync_issue_result expected: requset: {interface_data.issue_req}')
+
+    if interface_data.valid == 1:
+        excepted_resp = instructions[interface_data.sel_instr]["resp"]
+    else:
+        excepted_resp = x_issue_resp_t(accept=0x0, writeback=0x0, dualwrite=0x0, dualread=0x0, loadstore=0x0, ecswrite=0x0, exc=0x0)
+    
+
+    assert issue_resp == excepted_resp , \
             f"Resp is diffrent then the expected one"
 
 
@@ -328,18 +338,24 @@ async def exe_interface_dut(dut, interface_data):
     await FallingEdge(dut.clk_i)
     await FallingEdge(dut.clk_i)
     await Timer(1,units='ns')
-    dut.exe_wrapper_recv_instr_ready.value = 1
-    req,resp = read_result_intf(dut)
-    cocotb.log.info(f'exe_interface_dut req: {req}')
-    cocotb.log.info(f'exe_interface_dut resp: {resp}')
-    cocotb.log.info(f'issue_interface resp: {interface_data.issue_req}')
-    await FallingEdge(dut.clk_i)
-    dut.exe_wrapper_recv_instr_ready.value = 0
-    # issue_resp = bfm.read_output()
-    assert resp == instructions[interface_data.sel_instr]["resp"] , \
-            f"Resp is diffrent then the expected at the exe_interface_dut"
-    assert req == interface_data.issue_req , \
-            f"Req is diffrent then the expected at the exe_interface_dut"        
+    if interface_data.valid == 1:
+        dut.exe_wrapper_recv_instr_ready.value = 1
+        
+        req,resp = read_result_intf(dut)
+        cocotb.log.info(f'exe_interface_dut req: {req}')
+        cocotb.log.info(f'exe_interface_dut resp: {resp}')
+        cocotb.log.info(f'issue_interface expected: resp: {interface_data.issue_req}')
+        cocotb.log.info(f'issue_interface expected: sel_instr: {interface_data.sel_instr}')
+
+        await FallingEdge(dut.clk_i)
+
+        dut.exe_wrapper_recv_instr_ready.value = 0
+
+        # issue_resp = bfm.read_output()
+        assert resp == instructions[interface_data.sel_instr]["resp"] , \
+                f"Resp is diffrent then the expected at the exe_interface_dut"
+        assert req == interface_data.issue_req , \
+                f"Req is diffrent then the expected at the exe_interface_dut"        
 
 
 
@@ -357,19 +373,22 @@ async def xif_result_interface_dut(dut, interface_data, delay_cycles=1):
     expected_resp.exccode = 0 
     expected_resp.err = 0
     expected_resp.dbg = 0
-    await FallingEdge(dut.clk_i)
-    for _ in range(delay_cycles):
+    if interface_data.result_pkt.result_valid == 1:
         await FallingEdge(dut.clk_i)
-    await Timer(1,units='ns')
-    dut.ext_if_coproc_result_ready.value = 1
-    resp = read_xif_result_intf(dut)
-    # cocotb.log.info(f'exe_interface_dut req: {}')
-    cocotb.log.info(f'result_interface resp: {resp}')
-    await FallingEdge(dut.clk_i)
-    dut.ext_if_coproc_result_ready.value = 0
+        for _ in range(delay_cycles):
+            await FallingEdge(dut.clk_i)
+        await Timer(1,units='ns')
 
-    assert resp == expected_resp, \
-            f"Resp is diffrent then the expected at the exe_interface_dut"
+        dut.ext_if_coproc_result_ready.value = 1
+        resp = read_xif_result_intf(dut)
+        # cocotb.log.info(f'exe_interface_dut req: {}')
+        cocotb.log.info(f'result_interface resp: {resp}')
+        await FallingEdge(dut.clk_i)
+        dut.ext_if_coproc_result_ready.value = 0
+
+        print("comparison needed")
+        assert resp == expected_resp, \
+                f"Resp is diffrent then the expected at the exe_interface_dut"
 
 
 @cocotb.test()
@@ -695,8 +714,12 @@ async def _issue_commit_exe_interface_porperly(dut):
         interface_data.randomize_valid()
         # interface_data.randomize_illegal()
         interface_data.issue_req.id = id%16
-        await bfm.send_op(1,copy.deepcopy(interface_data.issue_req))
+        valid= random.choice([0,1])
+        print("valid; ", valid)
+        interface_data.valid =  valid
+        await bfm.send_op(copy.deepcopy(interface_data.valid),copy.deepcopy(interface_data.issue_req))
         cocotb.log.info(f'Dut interface data in tb: {interface_data.issue_req}')
+        cocotb.log.info(f'Dut interface req valid in tb: {interface_data.valid}')
         f1 = cocotb.start_soon(populate_commit_interface(dut,copy.deepcopy(interface_data),0))
         f2 = cocotb.start_soon(exe_interface_dut(dut,copy.deepcopy(interface_data)))
         # await send_req_eval(bfm,interface_data)
@@ -775,8 +798,8 @@ async def _exe_result_xif_interface(dut):
         print(id)
         result_data.randomize()
         result_data.result_pkt.req.id = id%16
-        result_data.result_pkt.result_valid = 1
-        await bfm.send_op(1,copy.deepcopy(result_data.result_pkt))
+        result_data.result_pkt.result_valid = random.randint(0,1)
+        await bfm.send_op(copy.deepcopy(result_data.result_pkt.result_valid),copy.deepcopy(result_data.result_pkt))
         task_arr.append(cocotb.start_soon(xif_result_interface_dut(dut,copy.deepcopy(result_data))))
 
     await Combine(*task_arr)
