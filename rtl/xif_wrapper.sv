@@ -80,13 +80,13 @@ import cvxif_instr_pkg::*;
   //Issue ready if rs_valid and maximum instructions offloaded < DEPTH
   assign xif_issue_if.issue_ready = ~fifo_commit_full && ~fifo_instr_full && ~fifo_res_full && (fifo_commit_usage + fifo_instr_usage + fifo_res_usage < INSTR_DEPTH) && rs_valid_flag; // REAL FUNCTIONALITY, UNCOMMENT WHEN PROBLEM IS SORTED OUT! (rs_valid left out to avoid comb loops on the CPU side)
 
-  //FIFO_commit signals                                                              possible fix
-  assign fifo_commit_push = xif_issue_if.issue_valid && xif_issue_if.issue_ready;// && xif_issue_if.issue_resp.accept; // If issue transaction then issue_req and issue_resp go to fifo, if not accepted or kill they will be discarded later on
+  //FIFO_commit signals                                                              
+  assign fifo_commit_push = xif_issue_if.issue_valid && xif_issue_if.issue_ready && xif_issue_if.issue_resp.accept; // If issue transaction then issue_req and issue_resp go to fifo, if not accepted or kill they will be discarded later on
   assign issue_commit_i.req = xif_issue_if.issue_req; // Issue req. goes to the fifo
   assign issue_commit_i.resp = xif_issue_if.issue_resp; // Corresponding Issue resp goes to the fifo as well
 
   //POP when commit_valid + issue transaction in progress or already done, if issue transaction has not happened yet then wait - All the commit transactions are in order matching with issue transactions
-  assign fifo_commit_pop = xif_commit_if.commit_valid & ~(xif_commit_if.commit.id == xif_issue_if.issue_req.id && xif_issue_if.issue_valid && ~xif_issue_if.issue_ready);
+  assign fifo_commit_pop = xif_commit_if.commit_valid & (xif_commit_if.commit.id == issue_commit_o.req.id) & ~(xif_commit_if.commit.id == xif_issue_if.issue_req.id && xif_issue_if.issue_valid && ~xif_issue_if.issue_ready);
 
   //FIFO_result signals
   assign fifo_res_pop = xif_result_if.result_ready & ~fifo_res_empty;

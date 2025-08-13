@@ -31,6 +31,7 @@ always_comb begin
   rs_valid_mask            = '0;
   for (int unsigned i = 0; i < NbInstr; i++) begin //TODO: Modify the condition below "issue_ready_i && x_issue_req_i.rs_valid == '1" -> This condition can be erased as it is already checked for issue_ready? What about issue_valid_i?? -> (only sel[i])?
     if (sel[i]) begin //&& issue_valid_i && issue_ready_i && x_issue_req_i.rs_valid == '1 // x_issue_req_i.rs_valid='1 for the moment we consider all instr use all source registers, so they must all be valid
+      if (issue_valid_i == 1) begin
       x_issue_resp_o.accept    = CoproInstr[i].resp.accept;
       x_issue_resp_o.writeback = CoproInstr[i].resp.writeback;
       x_issue_resp_o.dualwrite = CoproInstr[i].resp.dualwrite;
@@ -39,6 +40,7 @@ always_comb begin
       x_issue_resp_o.ecswrite  = CoproInstr[i].resp.ecswrite;
       x_issue_resp_o.exc       = CoproInstr[i].resp.exc;
       rs_valid_mask            = CoproInstr[i].rs_valid_mask;
+      end
     end
   end
 end
