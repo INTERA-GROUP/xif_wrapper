@@ -1,4 +1,5 @@
-import cvxif_instr_pkg::*;
+import cvxif_instr_pkg::x_issue_t;
+import cvxif_instr_pkg::x_issue_fifo_res_t;
 
 interface if_xif_exe;
 

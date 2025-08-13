@@ -19,7 +19,16 @@ import cvxif_instr_pkg::*;
     if_xif.coproc_mem_result xif_mem_result_if,
     if_xif.coproc_result     xif_result_if,
     // interface for the exe block
-    if_xif_exe               if_wrapper_exe
+    if_xif_exe.xif_wrapper   if_wrapper_exe
+    // output logic exe_valid_in, // Input signal indicating valid data on FIFO_instr (not empty)
+    // input logic exe_ready_out, // Output signal indicating readiness to accept new data
+    // output x_issue_t exe_issue_instr_in, // Input data to be processed
+
+    // // Execution - FIFO_result
+    // input logic exe_valid_out, // Output signal indicating valid output data
+    // output logic exe_ready_in, // Input signal indicating readiness to accept data on FIFO_result (not full)
+    // input logic [X_RFW_WIDTH-1:0] exe_result_instr,   // Output processed data
+    // input x_issue_t exe_issue_instr_out 
 );
 
 // Intermediate signals
@@ -164,11 +173,18 @@ import cvxif_instr_pkg::*;
 //   .issue_instr_in(issue_instr_o),
 //   //Interface: Execution block <-> FIFO_result
 //   .ready_in(~fifo_res_full),
-//   .valid_out(x_fifo_res_i.result_valid_exec_o),
+//   .valid_out(),
 //   .result_instr(x_fifo_res_i.result_data_exec_o),
 //   .issue_instr_out(x_fifo_res_i.issue_exec_o)
 // );
 
+  // assign exe_valid_in = ~fifo_instr_empty;
+  // assign fifo_instr_pop = exe_ready_out;
+  // assign exe_issue_instr_in = issue_instr_o;
+  // assign exe_ready_in = ~fifo_res_full;
+  // assign x_fifo_res_i.result_valid_exec_o =exe_valid_out;
+  // assign x_fifo_res_i.result_data_exec_o = exe_result_instr;
+  // assign x_fifo_res_i.issue_exec_o = exe_issue_instr_out;
   //Interface: FIFO_instr <-> execution block
 assign if_wrapper_exe.wrapper_exe_instr_vaild = ~fifo_instr_empty;
 assign if_wrapper_exe.wrapper_exe_instr_issue = issue_instr_o;
