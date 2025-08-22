@@ -406,7 +406,7 @@ async def reset_test(dut):
 
 
     await bfm.reset()
-
+    dut.exe_wrapper_recv_instr_ready.value = 0
     interface_data = xif_issue_seqItem()
     for id in range(4):
         interface_data.randomize_valid()
@@ -455,7 +455,7 @@ async def all_issue_illegel_without_commit(dut):
 
 
     await bfm.reset()
-
+    dut.exe_wrapper_recv_instr_ready.value = 0
     interface_data = xif_issue_seqItem()
     
     for id in range(10):
@@ -489,7 +489,7 @@ async def commit_interface_neg(dut):
     for sig in dut:
         print(sig._name)
 
-
+    dut.exe_wrapper_recv_instr_ready.value = 0
     await bfm.reset()
     for _ in range(3):
         await RisingEdge(dut.clk_i)
@@ -548,7 +548,7 @@ async def commit_interface_porperly(dut):
     await bfm.reset()
     for _ in range(3):
         await RisingEdge(dut.clk_i)
-
+    dut.exe_wrapper_recv_instr_ready.value = 0
     interface_data = xif_issue_seqItem()
     for id in range(4):
         print(id)
@@ -600,7 +600,7 @@ async def commit_interface_kill_correct_id(dut):
     for sig in dut:
         print(sig._name)
 
-
+    dut.exe_wrapper_recv_instr_ready.value = 0
     await bfm.reset()
     for _ in range(3):
         await RisingEdge(dut.clk_i)
@@ -652,6 +652,7 @@ async def commit_interface_kill_worng_id(dut):
     bfm.start_bfm()
     bfm_commit.start_bfm()
 
+    dut.exe_wrapper_recv_instr_ready.value = 0
     await bfm.reset()
     for _ in range(3):
         await RisingEdge(dut.clk_i)
@@ -696,7 +697,7 @@ async def _issue_commit_exe_interface_porperly(dut):
     cocotb.start_soon(stop_after(10000))
     bfm = xif_issue_bfm()
     bfm_commit = xif_commit_bfm()
-
+    dut.exe_wrapper_recv_instr_ready.value = 0
     clock = Clock(dut.clk_i, 10, units="ns")
     cocotb.start_soon(clock.start())
     bfm.start_bfm()
@@ -750,6 +751,8 @@ async def exe_result_interface_fifo_fill(dut):
     clock = Clock(dut.clk_i, 10, units="ns")
     cocotb.start_soon(clock.start())
     bfm_issue = xif_issue_bfm()
+    dut.exe_wrapper_recv_instr_ready.value = 0
+    dut.ext_if_coproc_result_ready.value = 0
     await bfm_issue.reset()
 
     for _ in range(3):
@@ -787,6 +790,8 @@ async def _exe_result_xif_interface(dut):
     clock = Clock(dut.clk_i, 10, units="ns")
     cocotb.start_soon(clock.start())
     bfm_issue = xif_issue_bfm()
+    dut.exe_wrapper_recv_instr_ready.value = 0
+    dut.ext_if_coproc_result_ready.value = 0
     await bfm_issue.reset()
 
     for _ in range(3):
