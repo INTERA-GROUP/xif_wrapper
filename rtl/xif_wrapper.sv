@@ -5,6 +5,10 @@
 module xif_wrapper
 import cvxif_instr_pkg::*;
 #(
+  parameter int unsigned NbInstr = NbInstr_def,
+  parameter copro_issue_resp_t CoproInstr[NbInstr] = CoproInstr_def,
+  parameter INSTR_DEPTH = 4
+  
 )
 (
     // Clock and Reset

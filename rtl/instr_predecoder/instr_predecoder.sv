@@ -3,9 +3,13 @@
 // This module provides a combinational resp to instr. req based on the OPCODE
 
 module instr_predecoder
-import cvxif_instr_pkg::*;
+import cvxif_instr_pkg:: x_issue_req_t;
+import cvxif_instr_pkg:: x_issue_resp_t;
+import cvxif_instr_pkg:: copro_issue_resp_t;
 #(
-
+  parameter int unsigned NbInstr = cvxif_instr_pkg::NbInstr_def,
+  parameter copro_issue_resp_t CoproInstr[NbInstr] = cvxif_instr_pkg::CoproInstr_def,
+  parameter X_NUM_RS = cvxif_instr_pkg::X_NUM_RS
 ) (
   input  logic          clk_i,
   input  logic          issue_valid_i,

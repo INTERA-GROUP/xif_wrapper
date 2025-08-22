@@ -9,8 +9,8 @@ localparam X_NUM_RS = 3;  //2 or 3
 localparam X_ID_WIDTH = 4; // Number of bits for the instr. ID - This could match the INSTR_DEPTH of FIFO_INST 
 localparam X_RFR_WIDTH = 32; //Port for src read. Modify if double read: 64
 localparam X_RFW_WIDTH = 32; //Port for dest write. Modify if double write: 64
-localparam INSTR_DEPTH = 4; //Port for dest write. Modify if double write: 64
 
+// import cvxif_instr_pkg::*;
 
 typedef struct packed {
     logic [          31:0]                  instr;     // Offloaded instruction
@@ -54,9 +54,9 @@ typedef struct packed{
 }x_issue_fifo_res_t; 
 
 
-parameter int unsigned NbInstr = 6;
+parameter int unsigned NbInstr_def = 6;
 
-parameter copro_issue_resp_t CoproInstr[NbInstr] = '{
+parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     /*  Custom Instructions Encoding
     *
     *   |31         25|24     20|19     15|14 12|11      7|6           0|
