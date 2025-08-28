@@ -69,7 +69,8 @@ import cvxif_instr_pkg::*;
 
 // Decoder: gets the issue_req and based on data on cvxif_instr_pkg provides issue_resp - combinational block
   instr_predecoder #(
-
+    .NbInstr(NbInstr),
+    .CoproInstr(CoproInstr)
   ) instr_decoder_i (
       .clk_i         (clk_i),
       .issue_valid_i (xif_issue_if.issue_valid),
