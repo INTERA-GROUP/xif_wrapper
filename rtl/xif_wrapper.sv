@@ -2,13 +2,13 @@
 // Description: Wrapper for the x-if interface - check diagram for better understanding of FIFOs management and interface signals
 // Addition of new instr must be done in intr_package and execution modules
 
+
 module xif_wrapper
 import cvxif_instr_pkg::*;
 #(
   parameter int unsigned NbInstr = NbInstr_def,
   parameter copro_issue_resp_t CoproInstr[NbInstr] = CoproInstr_def,
-  parameter INSTR_DEPTH = 4
-  
+  parameter INSTR_DEPTH = 4  
 )
 (
     // Clock and Reset
@@ -24,15 +24,6 @@ import cvxif_instr_pkg::*;
     if_xif.coproc_result     xif_result_if,
     // interface for the exe block
     if_xif_exe.xif_wrapper   if_wrapper_exe
-    // output logic exe_valid_in, // Input signal indicating valid data on FIFO_instr (not empty)
-    // input logic exe_ready_out, // Output signal indicating readiness to accept new data
-    // output x_issue_t exe_issue_instr_in, // Input data to be processed
-
-    // // Execution - FIFO_result
-    // input logic exe_valid_out, // Output signal indicating valid output data
-    // output logic exe_ready_in, // Input signal indicating readiness to accept data on FIFO_result (not full)
-    // input logic [X_RFW_WIDTH-1:0] exe_result_instr,   // Output processed data
-    // input x_issue_t exe_issue_instr_out 
 );
 
 // Intermediate signals
@@ -70,7 +61,8 @@ import cvxif_instr_pkg::*;
 // Decoder: gets the issue_req and based on data on cvxif_instr_pkg provides issue_resp - combinational block
   instr_predecoder #(
     .NbInstr(NbInstr),
-    .CoproInstr(CoproInstr)
+    .CoproInstr(CoproInstr),
+    .X_NUM_RS(X_NUM_RS)
   ) instr_decoder_i (
       .clk_i         (clk_i),
       .issue_valid_i (xif_issue_if.issue_valid),
@@ -162,36 +154,8 @@ import cvxif_instr_pkg::*;
     .pop_i     (fifo_res_pop)
 );
 
-// // Execution: decoder + execution block
-// execution #(
-//   // MULTICYCLE parameter:
-//   // Set to 1 for multi-cycle operation (3-cycle MAC latency, pipelined multiplator).
-//   // Set to 0 for single-cycle operation (1-cycle MAC latency, combinational multiplator).
-//   // Note: MULTICYCLE = 1 is not supported on the cv32e40px core due to multi-cycle writeback issues.
-//   .MULTICYCLE(MULTICYCLE) 
-// ) execution_block_i (
-//   .clk_i (clk_i), 
-//   .rst_ni (rst_ni),
-//   //Interface: FIFO_instr <-> execution block
-//   .valid_in (~fifo_instr_empty),
-//   .ready_out (fifo_instr_pop),
-//   .issue_instr_in(issue_instr_o),
-//   //Interface: Execution block <-> FIFO_result
-//   .ready_in(~fifo_res_full),
-//   .valid_out(),
-//   .result_instr(x_fifo_res_i.result_data_exec_o),
-//   .issue_instr_out(x_fifo_res_i.issue_exec_o)
-// );
 
-  // assign exe_valid_in = ~fifo_instr_empty;
-  // assign fifo_instr_pop = exe_ready_out;
-  // assign exe_issue_instr_in = issue_instr_o;
-  // assign exe_ready_in = ~fifo_res_full;
-  // assign x_fifo_res_i.result_valid_exec_o =exe_valid_out;
-  // assign x_fifo_res_i.result_data_exec_o = exe_result_instr;
-  // assign x_fifo_res_i.issue_exec_o = exe_issue_instr_out;
-  //Interface: FIFO_instr <-> execution block
-assign if_wrapper_exe.wrapper_exe_instr_vaild = ~fifo_instr_empty;
+assign if_wrapper_exe.wrapper_exe_instr_valid = ~fifo_instr_empty;
 assign if_wrapper_exe.wrapper_exe_instr_issue = issue_instr_o;
 assign fifo_instr_pop = if_wrapper_exe.exe_wrapper_recv_instr_ready;
   //Interface: Execution block <-> FIFO_result

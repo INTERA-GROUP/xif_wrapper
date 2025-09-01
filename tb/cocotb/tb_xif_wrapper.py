@@ -85,7 +85,7 @@ class xif_issue_seqItem():
         self.rd = 0
         self.valid = 1
     def randomize(self):
-        # self.vaild = random.randint(0, 1)
+        # self.valid = random.randint(0, 1)
         self.sel_instr = random.randint(0, len(instructions)-1) 
         temp_mask= (instructions[self.sel_instr]["instr"]|instructions[self.sel_instr]["mask"])^ instructions[self.sel_instr]["mask"]
         instr= temp_mask&random.randint(0,2**32) | instructions[self.sel_instr]["instr"]
@@ -104,7 +104,7 @@ class xif_issue_seqItem():
         self.issue_req.rs_valid = instructions[self.sel_instr]["rs_valid_mask"]
     
     def randomize_valid(self):
-        # self.vaild = random.randint(0, 1)
+        # self.valid = random.randint(0, 1)
         self.sel_instr = random.randint(0, len(instructions)-2) 
         temp_mask= (instructions[self.sel_instr]["instr"]|instructions[self.sel_instr]["mask"])^ instructions[self.sel_instr]["mask"]
         instr= temp_mask&random.randint(0,2**32) | instructions[self.sel_instr]["instr"]
@@ -295,7 +295,7 @@ async def reset_test(dut):
     try:
         assert get_int(dut.ext_if_coproc_issue_ready) == 1,\
                 f" After reset this should 1 "
-        assert get_int(dut.wrapper_exe_instr_vaild) == 0,  \
+        assert get_int(dut.wrapper_exe_instr_valid) == 0,  \
                 f"  After reset this should 0"
     except AssertionError as e:
         cocotb.log.error(f"ASSERT FAILED: {e}")
@@ -312,7 +312,7 @@ async def reset_test(dut):
 
 @cocotb.test()
 async def all_issue_illegel_without_commit(dut):
-    """All the instrucations passed are not accepted by the dut. There is not corresponding commit Vaild"""
+    """All the instrucations passed are not accepted by the dut. There is not corresponding commit valid"""
 
     cocotb.start_soon(stop_after(1000))
     bfm = xif_issue_bfm()
@@ -347,7 +347,7 @@ async def all_issue_illegel_without_commit(dut):
 
 @cocotb.test()
 async def commit_interface_neg(dut):
-    """ send invaild commit signal"""
+    """ send invalid commit signal"""
     cocotb.start_soon(stop_after(1000))
     bfm = xif_issue_bfm()
     bfm_commit = xif_commit_bfm()
@@ -386,8 +386,8 @@ async def commit_interface_neg(dut):
 
     
     try:
-        assert get_int(dut.wrapper_exe_instr_vaild) == 0,  \
-                f" Wrapper_exe_instr shouldnt be set as the commit_vaild isnt for the same instrucations instrucation_dispatched"
+        assert get_int(dut.wrapper_exe_instr_valid) == 0,  \
+                f" Wrapper_exe_instr shouldnt be set as the commit_valid isnt for the same instrucations instrucation_dispatched"
     except AssertionError as e:
         cocotb.log.error(f"ASSERT FAILED: {e}")
         # Optionally set a debug signal or flag
@@ -440,9 +440,9 @@ async def commit_interface_porperly(dut):
     
     try:
         assert get_int(dut.ext_if_coproc_issue_ready) == 0,\
-                f" Wrapper_exe_instr shouldnt be set as the commit_vaild isnt to instrucation_dispatched"
-        assert get_int(dut.wrapper_exe_instr_vaild) == 1,  \
-                f" Wrapper_exe_instr shouldnt be set as the commit_vaild isnt to instrucation_dispatched"
+                f" Wrapper_exe_instr shouldnt be set as the commit_valid isnt to instrucation_dispatched"
+        assert get_int(dut.wrapper_exe_instr_valid) == 1,  \
+                f" Wrapper_exe_instr shouldnt be set as the commit_valid isnt to instrucation_dispatched"
     
     except AssertionError as e:
         cocotb.log.error(f"ASSERT FAILED: {e}")
@@ -497,7 +497,7 @@ async def commit_interface_kill_correct_id(dut):
     try:
         assert get_int(dut.ext_if_coproc_issue_ready) == 1,\
                 f"All instrucation got killed "
-        assert get_int(dut.wrapper_exe_instr_vaild) == 0,  \
+        assert get_int(dut.wrapper_exe_instr_valid) == 0,  \
                 f"All instrucation got killed"
     
     except AssertionError as e:
@@ -550,8 +550,8 @@ async def commit_interface_kill_worng_id(dut):
     try:
         assert get_int(dut.ext_if_coproc_issue_ready) == 0,\
                 f"Didnt send the correct commit id  ext_if_coproc_issue_ready should set to zero"
-        assert get_int(dut.wrapper_exe_instr_vaild) == 0,  \
-                f"Didnt send the correct commit id  wrapper_exe_instr_vaild should set to zero"
+        assert get_int(dut.wrapper_exe_instr_valid) == 0,  \
+                f"Didnt send the correct commit id  wrapper_exe_instr_valid should set to zero"
     
     except AssertionError as e:
         cocotb.log.error(f"ASSERT FAILED: {e}")

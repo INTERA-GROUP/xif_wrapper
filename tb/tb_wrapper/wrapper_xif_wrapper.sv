@@ -88,7 +88,7 @@ input logic rst_ni,
   output logic                    ext_if_coproc_result_err,
   output logic                    ext_if_coproc_result_dbg,
 
-  output  logic wrapper_exe_instr_vaild,
+  output  logic wrapper_exe_instr_valid,
   output  logic [31:0]            wrapper_exe_instr_issue_req_instr,
   output  logic [1:0]             wrapper_exe_instr_issue_req_mode,
   output  logic [X_ID_WIDTH-1:0]  wrapper_exe_instr_issue_req_id,
@@ -221,7 +221,7 @@ input logic rst_ni,
   assign ext_if_coproc_result_err = ext_if.result.err;
   assign ext_if_coproc_result_dbg = ext_if.result.dbg;
 
-  assign wrapper_exe_instr_vaild =  xif_exe_inst.wrapper_exe_instr_vaild;
+  assign wrapper_exe_instr_valid =  xif_exe_inst.wrapper_exe_instr_valid;
   assign wrapper_exe_instr_issue = xif_exe_inst.wrapper_exe_instr_issue;
 
   
@@ -263,7 +263,11 @@ input logic rst_ni,
   assign xif_exe_inst.exe_wrapper_result = exe_wrapper_result;
       // Module with custom instruction
       
-    xif_wrapper  xif_wrapper_inst (
+    xif_wrapper #(
+          // .NbInstr(NbInstr),
+          // .CoproInstr(CoproInstr),
+          // .X_NUM_RS(X_NUM_RS)
+           ) xif_wrapper_inst (
           // Clock and reset
           .clk_i (clk_i),
           .rst_ni(rst_ni),
