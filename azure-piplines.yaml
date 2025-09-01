@@ -1,0 +1,125 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+      - '*'  # Run on all branch pushes
+
+# pr:
+#   branches:
+#     include:
+#       - '*'  # Run on all pull requests
+
+resources:
+  containers:
+    - container: ubuntu_ci_container
+      image: aiqready.azurecr.io/ubuntu_env_src_ci:latest
+      endpoint: container_registry
+
+stages:
+  - stage: regression
+    displayName: "TEST REGRESSION"
+    jobs:
+      # - job: iverilog
+      #   displayName: "iverilog"
+      #   container: ubuntu_ci_container
+      #   steps:
+      #     - task: InstallSSHKey@0
+      #       inputs:
+      #         sshKeySecureFile: 'azure_pipeline_rsa'
+      #         knownHostsEntry: 'ssh.dev.azure.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H'
+      
+      #     - script: |
+      #         git submodule update --init --recursive
+      #         make regression REGRESSION_NAME=regress_iverilog_all TB_FRAMEWORK=SV_TB -j
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         PathtoPublish: 'result'
+      #         ArtifactName: 'iverilog_logs'
+      #         publishLocation: 'Container'
+      #       condition: always()
+
+      # - job: verilator
+      #   displayName: "verilator"
+      #   container: ubuntu_ci_container
+      #   steps:
+      #     - task: InstallSSHKey@0
+      #       inputs:
+      #         sshKeySecureFile: 'azure_pipeline_rsa'
+      #         knownHostsEntry: 'ssh.dev.azure.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H'
+      
+      #     - script: |
+      #         git submodule update --init --recursive
+      #         make regression REGRESSION_NAME=regress_verilator_all TB_FRAMEWORK=SV_TB -j
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         PathtoPublish: 'result'
+      #         ArtifactName: 'verilator_logs'
+      #         publishLocation: 'Container'
+      #       condition: always()
+      
+      - job: COCOTB
+        displayName: "COCOTB"
+        container: ubuntu_ci_container
+        steps:
+          - task: InstallSSHKey@0
+            inputs:
+              sshKeySecureFile: 'azure_pipeline_rsa'
+              knownHostsEntry: 'ssh.dev.azure.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H'
+              
+          - script: |
+              git submodule update --init --recursive
+              make setup_common_files
+              make regression REGRESSION_NAME=regress_cocotb -j
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'result'
+              ArtifactName: 'verilator_logs'
+              publishLocation: 'Container'
+            condition: always()
+            
+
+  # - stage: linting
+  #   jobs:
+  #     - job: verilator_linter
+  #       displayName: "verilator_linter"
+  #       container: ubuntu_ci_container
+  #       steps:
+  #         - script: |
+  #             make verilator_linter -j 12
+  #         - task: PublishBuildArtifacts@1
+  #           inputs:
+  #             PathtoPublish: 'result'
+  #             ArtifactName: 'verilator_linter_log'
+  #             publishLocation: 'Container'
+  #           condition: always()  
+
+      # - job: verible_linter_tb
+      #   displayName: "verible_linter_tb"
+      #   container: ubuntu_ci_container
+      #   steps:
+      #     - script: |
+      #         make verible_linter_tb -j 12
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         PathtoPublish: 'result'
+      #         ArtifactName: 'verilator_linter_logs_tb'
+      #         publishLocation: 'Container'
+      #       condition: always()
+      
+      # - job: verible_linter_rtl
+      #   displayName: "verible_linter_tb"
+      #   container: ubuntu_ci_container
+      #   steps:
+      #     - script: |
+      #         make verible_linter_rtl -j 12
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         PathtoPublish: 'result'
+      #         ArtifactName: 'verilator_linter_logs_rtl'
+      #         publishLocation: 'Container'
+      #       condition: always()  
+  

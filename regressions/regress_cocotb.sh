@@ -1,0 +1,1 @@
+make cocotb_run TB_FRAMEWORK=COCOTB_TB VCD=1 PARAMETER_NAME=Basic_tests

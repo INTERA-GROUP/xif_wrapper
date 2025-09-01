@@ -17,13 +17,13 @@ input logic rst_ni,
 //   );
 
 // COMPRESSED IF
-  input  logic                     ext_if_coproc_compressed_valid,
-  output logic                    ext_if_coproc_compressed_ready,
-  input  logic [15:0]             ext_if_coproc_compressed_req_instr,
-  input  logic [1:0]              ext_if_coproc_compressed_req_mode,
-  input  logic [X_ID_WIDTH-1:0]   ext_if_coproc_compressed_req_id,
-  output logic [31:0]            ext_if_coproc_compressed_resp_instr,
-  output logic                   ext_if_coproc_compressed_resp_accept,
+  // input  logic                     ext_if_coproc_compressed_valid,
+  // output logic                    ext_if_coproc_compressed_ready,
+  // input  logic [15:0]             ext_if_coproc_compressed_req_instr,
+  // input  logic [1:0]              ext_if_coproc_compressed_req_mode,
+  // input  logic [X_ID_WIDTH-1:0]   ext_if_coproc_compressed_req_id,
+  // output logic [31:0]            ext_if_coproc_compressed_resp_instr,
+  // output logic                   ext_if_coproc_compressed_resp_accept,
 
   // ISSUE IF
   input  logic                     ext_if_coproc_issue_valid,
@@ -50,29 +50,29 @@ input logic rst_ni,
   input  logic [X_ID_WIDTH-1:0]   ext_if_coproc_commit_id,
   input  logic                    ext_if_coproc_commit_kill,
 
-  // MEMORY IF
-  output logic                    ext_if_coproc_mem_valid,
-  input  logic                    ext_if_coproc_mem_ready,
-  output logic [X_ID_WIDTH-1:0]   ext_if_coproc_mem_req_id,
-  output logic [31:0]             ext_if_coproc_mem_req_addr,
-  output logic [1:0]              ext_if_coproc_mem_req_mode,
-  output logic                    ext_if_coproc_mem_req_we,
-  output logic [2:0]              ext_if_coproc_mem_req_size,
-  output logic [X_MEM_WIDTH/8-1:0] ext_if_coproc_mem_req_be,
-  output logic [1:0]              ext_if_coproc_mem_req_attr,
-  output logic [X_MEM_WIDTH-1:0]  ext_if_coproc_mem_req_wdata,
-  output logic                    ext_if_coproc_mem_req_last,
-  output logic                    ext_if_coproc_mem_req_spec,
-  input  logic                    ext_if_coproc_mem_resp_exc,
-  input  logic [5:0]              ext_if_coproc_mem_resp_exccode,
-  input  logic                    ext_if_coproc_mem_resp_dbg,
+  // // MEMORY IF
+  // output logic                    ext_if_coproc_mem_valid,
+  // input  logic                    ext_if_coproc_mem_ready,
+  // output logic [X_ID_WIDTH-1:0]   ext_if_coproc_mem_req_id,
+  // output logic [31:0]             ext_if_coproc_mem_req_addr,
+  // output logic [1:0]              ext_if_coproc_mem_req_mode,
+  // output logic                    ext_if_coproc_mem_req_we,
+  // output logic [2:0]              ext_if_coproc_mem_req_size,
+  // output logic [X_MEM_WIDTH/8-1:0] ext_if_coproc_mem_req_be,
+  // output logic [1:0]              ext_if_coproc_mem_req_attr,
+  // output logic [X_MEM_WIDTH-1:0]  ext_if_coproc_mem_req_wdata,
+  // output logic                    ext_if_coproc_mem_req_last,
+  // output logic                    ext_if_coproc_mem_req_spec,
+  // input  logic                    ext_if_coproc_mem_resp_exc,
+  // input  logic [5:0]              ext_if_coproc_mem_resp_exccode,
+  // input  logic                    ext_if_coproc_mem_resp_dbg,
 
-  // MEMORY RESULT IF
-  input  logic                    ext_if_coproc_mem_result_valid,
-  input  logic [X_ID_WIDTH-1:0]   ext_if_coproc_mem_result_id,
-  input  logic [X_MEM_WIDTH-1:0]  ext_if_coproc_mem_result_rdata,
-  input  logic                    ext_if_coproc_mem_result_err,
-  input  logic                    ext_if_coproc_mem_result_dbg,
+  // // MEMORY RESULT IF
+  // input  logic                    ext_if_coproc_mem_result_valid,
+  // input  logic [X_ID_WIDTH-1:0]   ext_if_coproc_mem_result_id,
+  // input  logic [X_MEM_WIDTH-1:0]  ext_if_coproc_mem_result_rdata,
+  // input  logic                    ext_if_coproc_mem_result_err,
+  // input  logic                    ext_if_coproc_mem_result_dbg,
 
   // RESULT IF
   output logic                    ext_if_coproc_result_valid,
@@ -151,13 +151,13 @@ input logic rst_ni,
 //   );
 
 // Compressed interface
-  assign ext_if.compressed_valid            = ext_if_coproc_compressed_valid;
-  assign ext_if_coproc_compressed_ready     = ext_if.compressed_ready;
-  assign ext_if.compressed_req.instr        = ext_if_coproc_compressed_req_instr;
-  assign ext_if.compressed_req.mode         = ext_if_coproc_compressed_req_mode;
-  assign ext_if.compressed_req.id           = ext_if_coproc_compressed_req_id;
-  assign ext_if_coproc_compressed_resp_instr = ext_if.compressed_resp.instr;
-  assign ext_if_coproc_compressed_resp_accept = ext_if.compressed_resp.accept;
+  // assign ext_if.compressed_valid            = ext_if_coproc_compressed_valid;
+  // assign ext_if_coproc_compressed_ready     = ext_if.compressed_ready;
+  // assign ext_if.compressed_req.instr        = ext_if_coproc_compressed_req_instr;
+  // assign ext_if.compressed_req.mode         = ext_if_coproc_compressed_req_mode;
+  // assign ext_if.compressed_req.id           = ext_if_coproc_compressed_req_id;
+  // assign ext_if_coproc_compressed_resp_instr = ext_if.compressed_resp.instr;
+  // assign ext_if_coproc_compressed_resp_accept = ext_if.compressed_resp.accept;
 
   // Issue interface
   assign ext_if.issue_valid                 = ext_if_coproc_issue_valid;
@@ -183,29 +183,29 @@ input logic rst_ni,
   assign ext_if.commit.commit_kill          = ext_if_coproc_commit_kill;
 
   // Memory interface
-  assign ext_if_coproc_mem_valid            = ext_if.mem_valid;
-  assign ext_if.mem_ready                   = ext_if_coproc_mem_ready;
-  assign ext_if.mem_req.id                  = ext_if_coproc_mem_req_id;
-  assign ext_if.mem_req.addr                = ext_if_coproc_mem_req_addr;
-  assign ext_if.mem_req.mode                = ext_if_coproc_mem_req_mode;
-  assign ext_if.mem_req.we                  = ext_if_coproc_mem_req_we;
-  assign ext_if.mem_req.size                = ext_if_coproc_mem_req_size;
-  assign ext_if.mem_req.be                  = ext_if_coproc_mem_req_be;
-  assign ext_if.mem_req.attr                = ext_if_coproc_mem_req_attr;
-  assign ext_if.mem_req.wdata               = ext_if_coproc_mem_req_wdata;
-  assign ext_if.mem_req.last                = ext_if_coproc_mem_req_last;
-  assign ext_if.mem_req.spec                = ext_if_coproc_mem_req_spec;
+  // assign ext_if_coproc_mem_valid            = ext_if.mem_valid;
+  // assign ext_if.mem_ready                   = ext_if_coproc_mem_ready;
+  // assign ext_if.mem_req.id                  = ext_if_coproc_mem_req_id;
+  // assign ext_if.mem_req.addr                = ext_if_coproc_mem_req_addr;
+  // assign ext_if.mem_req.mode                = ext_if_coproc_mem_req_mode;
+  // assign ext_if.mem_req.we                  = ext_if_coproc_mem_req_we;
+  // assign ext_if.mem_req.size                = ext_if_coproc_mem_req_size;
+  // assign ext_if.mem_req.be                  = ext_if_coproc_mem_req_be;
+  // assign ext_if.mem_req.attr                = ext_if_coproc_mem_req_attr;
+  // assign ext_if.mem_req.wdata               = ext_if_coproc_mem_req_wdata;
+  // assign ext_if.mem_req.last                = ext_if_coproc_mem_req_last;
+  // assign ext_if.mem_req.spec                = ext_if_coproc_mem_req_spec;
 
-  assign ext_if.mem_resp.exc         = ext_if_coproc_mem_resp_exc;
-  assign ext_if.mem_resp.exccode     = ext_if_coproc_mem_resp_exccode;
-  assign ext_if.mem_resp.dbg         = ext_if_coproc_mem_resp_dbg;
+  // assign ext_if.mem_resp.exc         = ext_if_coproc_mem_resp_exc;
+  // assign ext_if.mem_resp.exccode     = ext_if_coproc_mem_resp_exccode;
+  // assign ext_if.mem_resp.dbg         = ext_if_coproc_mem_resp_dbg;
 
   // Memory result interface
-  assign ext_if.mem_result_valid            = ext_if_coproc_mem_result_valid;
-  assign ext_if.mem_result.id               = ext_if_coproc_mem_result_id;
-  assign ext_if.mem_result.rdata            = ext_if_coproc_mem_result_rdata;
-  assign ext_if.mem_result.err              = ext_if_coproc_mem_result_err;
-  assign ext_if.mem_result.dbg              = ext_if_coproc_mem_result_dbg;
+  // assign ext_if.mem_result_valid            = ext_if_coproc_mem_result_valid;
+  // assign ext_if.mem_result.id               = ext_if_coproc_mem_result_id;
+  // assign ext_if.mem_result.rdata            = ext_if_coproc_mem_result_rdata;
+  // assign ext_if.mem_result.err              = ext_if_coproc_mem_result_err;
+  // assign ext_if.mem_result.dbg              = ext_if_coproc_mem_result_dbg;
 
   // Result interface
   assign ext_if_coproc_result_valid         = ext_if.result_valid;
