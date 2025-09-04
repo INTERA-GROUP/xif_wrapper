@@ -128,7 +128,7 @@ import cvxif_instr_pkg::*;
     .empty_o   (fifo_instr_empty),
     .usage_o   (fifo_instr_usage),
     .data_i    (issue_commit_o),
-    .push_i    (fifo_commit_pop && ~xif_commit_if.commit.commit_kill && issue_commit_o.resp.accept), // We input data from FIFO_commit when fifo_commit_pop + no kill (commit) + accept instr.
+    .push_i    (fifo_commit_pop && ~xif_commit_if.commit.commit_kill && issue_commit_o.resp.accept && ~fifo_commit_empty), // We input data from FIFO_commit when fifo_commit_pop + no kill (commit) + accept instr.
     .data_o    (issue_instr_o),
     .pop_i     (fifo_instr_pop)
 );
