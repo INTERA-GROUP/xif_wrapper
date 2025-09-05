@@ -65,7 +65,7 @@ instructions = [
         "resp": x_issue_resp_t(True, True, False, 0, False, False, False)
     },
     {
-        "instr": 0b00000000000000000000000000000000,
+        "instr": 0b00000000000000000000000000001111,
         "mask":  0b11111111111111111111111111111111,
         "rs_valid_mask": 0b000,
         "resp": x_issue_resp_t(False, False, False, 0, False, False, False)
