@@ -75,7 +75,7 @@ import cvxif_instr_pkg::*;
   //rs_valid_flag goes high when the required source registers are available
   assign rs_valid_flag = &(xif_issue_if.issue_req.rs_valid | ~rs_valid_mask); // Reduction over the 'or' of rs_valid + not(rs_valid_mask) // Obtained with a Truth table and corresponding Karnough map
   //Issue ready if rs_valid and maximum instructions offloaded < DEPTH
-  assign xif_issue_if.issue_ready = ~fifo_commit_full && ~fifo_instr_full && ~fifo_res_full && (fifo_commit_usage + fifo_instr_usage + fifo_res_usage < INSTR_DEPTH) && rs_valid_flag; // REAL FUNCTIONALITY, UNCOMMENT WHEN PROBLEM IS SORTED OUT! (rs_valid left out to avoid comb loops on the CPU side)
+  assign xif_issue_if.issue_ready = ~fifo_commit_full && ~fifo_instr_full && ~fifo_res_full && (fifo_commit_usage + fifo_instr_usage + fifo_res_usage < INSTR_DEPTH) && rs_valid_flag && rst_ni; // REAL FUNCTIONALITY, UNCOMMENT WHEN PROBLEM IS SORTED OUT! (rs_valid left out to avoid comb loops on the CPU side)
 
   //FIFO_commit signals                                                              
   assign fifo_commit_push = xif_issue_if.issue_valid && xif_issue_if.issue_ready && xif_issue_if.issue_resp.accept; // If issue transaction then issue_req and issue_resp go to fifo, if not accepted or kill they will be discarded later on
