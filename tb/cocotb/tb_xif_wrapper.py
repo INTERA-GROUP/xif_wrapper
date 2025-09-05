@@ -292,6 +292,7 @@ async def reset_test(dut):
         await FallingEdge(dut.clk_i)
 
     await bfm.reset()
+    await timer(1,units="steps")
     try:
         assert get_int(dut.ext_if_coproc_issue_ready) == 1,\
                 f" After reset this should 1 "
