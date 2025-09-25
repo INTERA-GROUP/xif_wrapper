@@ -4,10 +4,15 @@
 
 package cvxif_instr_pkg;
 
-
 localparam X_NUM_RS = 3;  //2 or 3
-localparam X_ID_WIDTH = 4; // Number of bits for the instr. ID - This could match the INSTR_DEPTH of FIFO_INST 
-localparam X_RFR_WIDTH = 32; //Port for src read. Modify if double read: 64
+localparam X_ID_WIDTH = 4; // Number of bits for the instr. ID - This could match the INSTR_DEPTH of FIFO_INST
+
+`ifdef XIF_X_RFR_WIDTH_32
+    localparam X_RFR_WIDTH = 32; //Port for src read. Modify if double read: 64
+`elsif XIF_X_RFR_WIDTH_64
+    localparam X_RFR_WIDTH = 64;
+`endif
+
 localparam X_RFW_WIDTH = 32; //Port for dest write. Modify if double write: 64
 
 // import cvxif_instr_pkg::*;

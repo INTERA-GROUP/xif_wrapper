@@ -30,6 +30,7 @@ always_comb begin
   x_issue_resp_o.writeback = '0;
   x_issue_resp_o.dualwrite = '0;
   x_issue_resp_o.dualread  = '0;
+  x_issue_resp_o.loadstore = '0;
   x_issue_resp_o.ecswrite  = '0;
   x_issue_resp_o.exc       = '0;
   rs_valid_mask            = '0;

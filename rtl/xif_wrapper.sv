@@ -43,7 +43,8 @@ import cvxif_instr_pkg::*;
   logic [1:0] fifo_commit_usage;
   logic [1:0] fifo_instr_usage;
   logic [1:0] fifo_res_usage;
-
+  x_issue_req_t  temp_x_issue_req_i;
+  logic [31:0] temp_instr ;
 //FIFO_result packed signals
   x_issue_fifo_res_t x_fifo_res_i; // Output from the execution block - Input to the FIFO_result
   x_issue_fifo_res_t x_fifo_res_o; // Output from the FIFO_result - Input to Result interface
@@ -56,7 +57,15 @@ import cvxif_instr_pkg::*;
 //mem interface, never used
   assign  xif_mem_if.mem_valid                         = 0;
   assign  xif_mem_if.mem_req                           = '0;
-
+ 
+ // the issue for in verilator assginment  
+  assign temp_x_issue_req_i.instr     = xif_issue_if.issue_req.instr;
+  assign temp_x_issue_req_i.mode      = xif_issue_if.issue_req.mode;
+  assign temp_x_issue_req_i.id        = xif_issue_if.issue_req.id;
+  assign temp_x_issue_req_i.rs        = xif_issue_if.issue_req.rs;
+  assign temp_x_issue_req_i.rs_valid  = xif_issue_if.issue_req.rs_valid;
+  assign temp_x_issue_req_i.ecs       = xif_issue_if.issue_req.ecs;
+  assign temp_x_issue_req_i.ecs_valid = xif_issue_if.issue_req.ecs_valid;
 
 // Decoder: gets the issue_req and based on data on cvxif_instr_pkg provides issue_resp - combinational block
   instr_predecoder #(
@@ -67,23 +76,23 @@ import cvxif_instr_pkg::*;
       .clk_i         (clk_i),
       .issue_valid_i (xif_issue_if.issue_valid),
       .issue_ready_i (xif_issue_if.issue_ready),
-      .x_issue_req_i (xif_issue_if.issue_req),
+      .x_issue_req_i (temp_x_issue_req_i),
       .x_issue_resp_o (xif_issue_if.issue_resp),
       .rs_valid_mask (rs_valid_mask)
   );
 
   //rs_valid_flag goes high when the required source registers are available
-  assign rs_valid_flag = &(xif_issue_if.issue_req.rs_valid | ~rs_valid_mask); // Reduction over the 'or' of rs_valid + not(rs_valid_mask) // Obtained with a Truth table and corresponding Karnough map
+  assign rs_valid_flag = &(temp_x_issue_req_i.rs_valid | ~rs_valid_mask); // Reduction over the 'or' of rs_valid + not(rs_valid_mask) // Obtained with a Truth table and corresponding Karnough map
   //Issue ready if rs_valid and maximum instructions offloaded < DEPTH
   assign xif_issue_if.issue_ready = ~fifo_commit_full && ~fifo_instr_full && ~fifo_res_full && (fifo_commit_usage + fifo_instr_usage + fifo_res_usage < INSTR_DEPTH) && rs_valid_flag && rst_ni; // REAL FUNCTIONALITY, UNCOMMENT WHEN PROBLEM IS SORTED OUT! (rs_valid left out to avoid comb loops on the CPU side)
 
   //FIFO_commit signals                                                              
   assign fifo_commit_push = xif_issue_if.issue_valid && xif_issue_if.issue_ready && xif_issue_if.issue_resp.accept; // If issue transaction then issue_req and issue_resp go to fifo, if not accepted or kill they will be discarded later on
-  assign issue_commit_i.req = xif_issue_if.issue_req; // Issue req. goes to the fifo
+  assign issue_commit_i.req = temp_x_issue_req_i; // Issue req. goes to the fifo
   assign issue_commit_i.resp = xif_issue_if.issue_resp; // Corresponding Issue resp goes to the fifo as well
 
   //POP when commit_valid + issue transaction in progress or already done, if issue transaction has not happened yet then wait - All the commit transactions are in order matching with issue transactions
-  assign fifo_commit_pop = xif_commit_if.commit_valid & (xif_commit_if.commit.id == issue_commit_o.req.id) & ~(xif_commit_if.commit.id == xif_issue_if.issue_req.id && xif_issue_if.issue_valid && ~xif_issue_if.issue_ready);
+  assign fifo_commit_pop = xif_commit_if.commit_valid & (xif_commit_if.commit.id == issue_commit_o.req.id) & ~(xif_commit_if.commit.id == temp_x_issue_req_i.id && xif_issue_if.issue_valid && ~xif_issue_if.issue_ready);
 
   //FIFO_result signals
   assign fifo_res_pop = xif_result_if.result_ready & ~fifo_res_empty;

@@ -271,6 +271,8 @@ async def reset_test(dut):
     clock = Clock(dut.clk_i, 10, units="ns")
     cocotb.start_soon(clock.start())
     bfm.start_bfm()
+    dut.exe_wrapper_recv_instr_ready.value = 0
+    dut.exe_wrapper_result_result_valid_exec_o=0
 
     for sig in dut:
         print(sig._name)
@@ -323,7 +325,8 @@ async def all_issue_illegel_without_commit(dut):
     clock = Clock(dut.clk_i, 10, units="ns")
     cocotb.start_soon(clock.start())
     bfm.start_bfm()
-
+    dut.exe_wrapper_recv_instr_ready.value = 0
+    dut.exe_wrapper_result_result_valid_exec_o=0
     for sig in dut:
         print(sig._name)
 
@@ -359,7 +362,8 @@ async def commit_interface_neg(dut):
     cocotb.start_soon(clock.start())
     bfm.start_bfm()
     bfm_commit.start_bfm()
-
+    dut.exe_wrapper_recv_instr_ready.value = 0
+    dut.exe_wrapper_result_result_valid_exec_o=0
     for sig in dut:
         print(sig._name)
 
