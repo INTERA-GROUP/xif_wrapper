@@ -13,6 +13,12 @@ localparam X_ID_WIDTH = 4; // Number of bits for the instr. ID - This could matc
     localparam X_RFR_WIDTH = 32;
 `endif
 
+`ifdef XIF_DUAL_REG_READ_CFG
+    localparam logic XIF_DUAL_REG_READ = 1; //enable for dual enable and disable
+`else
+    localparam logic XIF_DUAL_REG_READ = 0;
+`endif
+
 localparam X_RFW_WIDTH = 32; //Port for dest write. Modify if double write: 64
 
 // import cvxif_instr_pkg::*;
@@ -22,7 +28,7 @@ typedef struct packed {
     logic [           1:0]                  mode;      // Privilege level
     logic [X_ID_WIDTH-1:0]                  id;        // Identification of the offloaded instruction
     logic [X_NUM_RS  -1:0][X_RFR_WIDTH-1:0] rs;        // Register file source operands for the offloaded instruction
-    logic [X_NUM_RS  -1:0]                  rs_valid;  // Validity of the register file source operand(s)
+    logic [(X_NUM_RS << XIF_DUAL_REG_READ)  -1:0]                  rs_valid;  // Validity of the register file source operand(s)
     logic [           5:0]                  ecs;       // Extension Context Status ({mstatus.xs, mstatus.fs, mstatus.vs})
     logic                                   ecs_valid; // Validity of the Extension Context Status
 } x_issue_req_t;
@@ -47,7 +53,7 @@ typedef struct packed {
 typedef struct packed {
   logic [31:0]              instr;
   logic [31:0]              mask;
-  logic [X_NUM_RS  -1:0]    rs_valid_mask;
+  logic [(X_NUM_RS<< XIF_DUAL_REG_READ)-1:0]    rs_valid_mask;
   x_issue_resp_t            resp;
 } copro_issue_resp_t;
 
