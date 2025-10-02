@@ -32,7 +32,7 @@ import cvxif_instr_pkg::*;
   x_issue_t issue_commit_o; //Output from FIFO_commit - Input to FIFO_instr if POP in FIFO_commit + ~kill + accept
   x_issue_t issue_instr_o;  //Output from FIFO_instr - Input to execution block
   x_issue_t issue_exec_o;   //Output from execution block
-  logic [X_NUM_RS  -1:0]    rs_valid_mask; //rs_valid_mask from pre-decoder 
+  logic [(X_NUM_RS << XIF_DUAL_REG_READ)  -1:0]    rs_valid_mask; //rs_valid_mask from pre-decoder 
   logic     rs_valid_flag;
 
 // FIFOs signals
