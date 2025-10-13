@@ -13,7 +13,7 @@ import vsc
 from cocotb.result import TestComplete
 from pyuvm import *
 import pyuvm
-from xif_utlis import *
+from xif_utils import *
 from typing import Optional
 from cocotb.triggers import Combine
 
