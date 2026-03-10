@@ -85,7 +85,7 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     '{
         instr: 32'b0000000_00000_00000_010_00000_0001011,  // mlpload  md, rs1
         mask:  32'b1111111_11111_00000_111_00000_1111111,   
-        rs_valid_mask: 3'b001, 
+        rs_valid_mask: 'b001, 
         resp : '{
             accept : 1'b1,
             writeback : 1'b0,
@@ -99,7 +99,7 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     '{
         instr: 32'b0000000_00000_00000_011_00000_0001011,  // mlpmac<00>[x<wid>][0]  md, rs1, rs2; 4-bit
         mask:  32'b1111111_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 3'b011, 
+        rs_valid_mask: 'b011, 
         resp : '{
             accept : 1'b1,
             writeback : 1'b0,
@@ -113,7 +113,7 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     '{
         instr: 32'b0010100_00000_00000_011_00000_0001011,  // mlpmac<01>[x<wid>][0]  md, rs1, rs2; 8-bit
         mask:  32'b1111111_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 3'b011, 
+        rs_valid_mask: 'b011, 
         resp : '{
             accept : 1'b1,
             writeback : 1'b0,
@@ -127,7 +127,7 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     '{
         instr: 32'b0101000_00000_00000_011_00000_0001011,  // mlpmac<10>[x<wid>][0]  md, rs1, rs2; 16-bit
         mask:  32'b1111111_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 3'b011, 
+        rs_valid_mask: 'b011, 
         resp : '{
             accept : 1'b1,
             writeback : 1'b0,
@@ -141,7 +141,7 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     '{
         instr: 32'b0000000_00000_00000_100_00000_0001011,  // mlpread[0]<wid>[0][<sat>] rd, ms1, shift; Read (o-32b)
         mask:  32'b1000000_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 3'b000, 
+        rs_valid_mask: 'b000, 
         resp : '{
             accept : 1'b1,
             writeback : 1'b1,
@@ -155,7 +155,7 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     '{
         instr: 32'b1000000_00000_00000_100_00000_0001011,  // mlpread[1]<wid>[0][<sat>] rd, ms1, shift; Read + Clear (o-32b)
         mask:  32'b1000000_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 3'b000, 
+        rs_valid_mask: 'b000, 
         resp : '{
             accept : 1'b1,
             writeback : 1'b1,

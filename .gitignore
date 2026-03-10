@@ -9,3 +9,4 @@ tb/cocotb/__pycache__
 utils/cocotb_lib/__pycache__
 *.dat
 tb/setup/*
+xrun*

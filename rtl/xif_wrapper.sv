@@ -44,6 +44,7 @@ import cvxif_instr_pkg::*;
   logic [1:0] fifo_instr_usage;
   logic [1:0] fifo_res_usage;
   x_issue_req_t  temp_x_issue_req_i;
+  x_issue_resp_t resp_instr_predecoder;
   logic [31:0] temp_instr ;
 //FIFO_result packed signals
   x_issue_fifo_res_t x_fifo_res_i; // Output from the execution block - Input to the FIFO_result
@@ -77,9 +78,17 @@ import cvxif_instr_pkg::*;
       .issue_valid_i (xif_issue_if.issue_valid),
       .issue_ready_i (xif_issue_if.issue_ready),
       .x_issue_req_i (temp_x_issue_req_i),
-      .x_issue_resp_o (xif_issue_if.issue_resp),
+      .x_issue_resp_o (resp_instr_predecoder),
       .rs_valid_mask (rs_valid_mask)
   );
+
+  assign xif_issue_if.issue_resp.accept    = resp_instr_predecoder.accept & xif_issue_if.issue_valid; // If not valid, accept should be 0 even if predecoder raises it to 1, to avoid accepting transactions that are not happening
+  assign xif_issue_if.issue_resp.writeback = resp_instr_predecoder.writeback;
+  assign xif_issue_if.issue_resp.dualwrite = resp_instr_predecoder.dualwrite;
+  assign xif_issue_if.issue_resp.dualread  = resp_instr_predecoder.dualread;
+  assign xif_issue_if.issue_resp.loadstore = resp_instr_predecoder.loadstore;
+  assign xif_issue_if.issue_resp.ecswrite  = resp_instr_predecoder.ecswrite;
+  assign xif_issue_if.issue_resp.exc       = resp_instr_predecoder.exc;
 
   //rs_valid_flag goes high when the required source registers are available
   assign rs_valid_flag = &(temp_x_issue_req_i.rs_valid | ~rs_valid_mask); // Reduction over the 'or' of rs_valid + not(rs_valid_mask) // Obtained with a Truth table and corresponding Karnough map
@@ -92,7 +101,7 @@ import cvxif_instr_pkg::*;
   assign issue_commit_i.resp = xif_issue_if.issue_resp; // Corresponding Issue resp goes to the fifo as well
 
   //POP when commit_valid + issue transaction in progress or already done, if issue transaction has not happened yet then wait - All the commit transactions are in order matching with issue transactions
-  assign fifo_commit_pop = xif_commit_if.commit_valid & (xif_commit_if.commit.id == issue_commit_o.req.id) & ~(xif_commit_if.commit.id == temp_x_issue_req_i.id && xif_issue_if.issue_valid && ~xif_issue_if.issue_ready);
+  assign fifo_commit_pop = ~fifo_commit_empty & xif_commit_if.commit_valid & (xif_commit_if.commit.id == issue_commit_o.req.id) & ~(xif_commit_if.commit.id == temp_x_issue_req_i.id && xif_issue_if.issue_valid && ~xif_issue_if.issue_ready);
 
   //FIFO_result signals
   assign fifo_res_pop = xif_result_if.result_ready & ~fifo_res_empty;
@@ -166,7 +175,7 @@ import cvxif_instr_pkg::*;
 
 assign if_wrapper_exe.wrapper_exe_instr_valid = ~fifo_instr_empty;
 assign if_wrapper_exe.wrapper_exe_instr_issue = issue_instr_o;
-assign fifo_instr_pop = if_wrapper_exe.exe_wrapper_recv_instr_ready;
+assign fifo_instr_pop = if_wrapper_exe.exe_wrapper_recv_instr_ready && ~fifo_instr_empty;;
   //Interface: Execution block <-> FIFO_result
 assign if_wrapper_exe.wrapper_exe_recv_result_ready = ~fifo_res_full;
 assign x_fifo_res_i = if_wrapper_exe.exe_wrapper_result;

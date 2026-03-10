@@ -9,14 +9,15 @@ import cvxif_instr_pkg:: copro_issue_resp_t;
 #(
   parameter int unsigned NbInstr = cvxif_instr_pkg::NbInstr_def,
   parameter copro_issue_resp_t CoproInstr[NbInstr] = cvxif_instr_pkg::CoproInstr_def,
-  parameter X_NUM_RS = cvxif_instr_pkg::X_NUM_RS
+  parameter X_NUM_RS = cvxif_instr_pkg::X_NUM_RS,
+  parameter XIF_DUAL_REG_READ = cvxif_instr_pkg::XIF_DUAL_REG_READ
 ) (
   input  logic          clk_i,
   input  logic          issue_valid_i,
   input  logic          issue_ready_i,  
   input  x_issue_req_t  x_issue_req_i,
   output x_issue_resp_t x_issue_resp_o,
-  output logic [X_NUM_RS-1:0]    rs_valid_mask
+  output logic [(X_NUM_RS << XIF_DUAL_REG_READ)  -1:0]    rs_valid_mask
 );
 
 logic [NbInstr-1:0] sel; //Selector 
@@ -36,7 +37,7 @@ always_comb begin
   rs_valid_mask            = '0;
   for (int unsigned i = 0; i < NbInstr; i++) begin //TODO: Modify the condition below "issue_ready_i && x_issue_req_i.rs_valid == '1" -> This condition can be erased as it is already checked for issue_ready? What about issue_valid_i?? -> (only sel[i])?
     if (sel[i]) begin //&& issue_valid_i && issue_ready_i && x_issue_req_i.rs_valid == '1 // x_issue_req_i.rs_valid='1 for the moment we consider all instr use all source registers, so they must all be valid
-      if (issue_valid_i == 1) begin
+      
       x_issue_resp_o.accept    = CoproInstr[i].resp.accept;
       x_issue_resp_o.writeback = CoproInstr[i].resp.writeback;
       x_issue_resp_o.dualwrite = CoproInstr[i].resp.dualwrite;
@@ -45,7 +46,7 @@ always_comb begin
       x_issue_resp_o.ecswrite  = CoproInstr[i].resp.ecswrite;
       x_issue_resp_o.exc       = CoproInstr[i].resp.exc;
       rs_valid_mask            = CoproInstr[i].rs_valid_mask;
-      end
+
     end
   end
 end

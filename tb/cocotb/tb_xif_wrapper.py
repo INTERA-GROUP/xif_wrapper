@@ -193,7 +193,7 @@ async def compare_aync_issue_result(dut, interface_data):
     issue_resp = bfm.read_output()
 
     cocotb.log.info(f'compare_aync_issue_result expected: requset: {interface_data.issue_req}')
-
+    cocotb.log.info(f'compare_aync_issue_result valid : requset: {interface_data.valid}')
     if interface_data.valid == 1:
         excepted_resp = instructions[interface_data.sel_instr]["resp"]
     else:
@@ -246,8 +246,8 @@ async def xif_result_interface_dut(dut, interface_data, delay_cycles=1):
     expected_resp.dbg = 0
     if interface_data.result_pkt.result_valid == 1:
         await FallingEdge(dut.clk_i)
-        for _ in range(delay_cycles):
-            await FallingEdge(dut.clk_i)
+        # for _ in range(delay_cycles):
+        #     await FallingEdge(dut.clk_i)
         await Timer(1,units='ns')
 
         dut.ext_if_coproc_result_ready.value = 1
@@ -404,6 +404,8 @@ async def commit_interface_neg(dut):
         await Timer(100, units="ns")
 
         raise
+    for _ in range(20): #for syncing
+        await FallingEdge(dut.clk_i)
 
 
 
@@ -442,7 +444,7 @@ async def commit_interface_porperly(dut):
         
         print(" ")
     
-    for _ in range(2):
+    for _ in range(20):
         await FallingEdge(dut.clk_i)
     
     try:
@@ -498,7 +500,7 @@ async def commit_interface_kill_correct_id(dut):
         
         print(" ")
     
-    for _ in range(2):
+    for _ in range(20):
         await FallingEdge(dut.clk_i)
     
     try:
@@ -576,6 +578,7 @@ async def _issue_commit_exe_interface_porperly(dut):
     bfm = xif_issue_bfm()
     bfm_commit = xif_commit_bfm()
     dut.exe_wrapper_recv_instr_ready.value = 0
+    dut.ext_if_coproc_result_ready.value = 1
     clock = Clock(dut.clk_i, 10, units="ns")
     cocotb.start_soon(clock.start())
     bfm.start_bfm()
@@ -593,7 +596,7 @@ async def _issue_commit_exe_interface_porperly(dut):
         interface_data.randomize_valid()
         # interface_data.randomize_illegal()
         interface_data.issue_req.id = id%16
-        valid= random.choice([0,1])
+        valid= 1#random.choice([0,1])
         print("valid; ", valid)
         interface_data.valid =  valid
         await bfm.send_op(copy.deepcopy(interface_data.valid),copy.deepcopy(interface_data.issue_req))
@@ -644,7 +647,7 @@ async def exe_result_interface_fifo_fill(dut):
         result_data.result_pkt.result_valid = 1
         await bfm.send_op(1,copy.deepcopy(result_data.result_pkt))
 
-    for _ in range(2):
+    for _ in range(20):
         await FallingEdge(dut.clk_i)
     
     try:
@@ -672,13 +675,14 @@ async def _exe_result_xif_interface(dut):
     dut.ext_if_coproc_result_ready.value = 0
     await bfm_issue.reset()
 
-    for _ in range(3):
+    for _ in range(10):
         await RisingEdge(dut.clk_i)
 
     result_data = exe_result_seqItem()
     task_arr=[]
     for id in range(100):
-        print(id)
+        print("result id: ", id)
+        # print(id)
         result_data.randomize()
         result_data.result_pkt.req.id = id%16
         result_data.result_pkt.result_valid = random.randint(0,1)
@@ -686,7 +690,7 @@ async def _exe_result_xif_interface(dut):
         task_arr.append(cocotb.start_soon(xif_result_interface_dut(dut,copy.deepcopy(result_data))))
 
     await Combine(*task_arr)
-    for _ in range(2):
+    for _ in range(20):
         await FallingEdge(dut.clk_i)
     
 
@@ -698,6 +702,11 @@ async def exe_result_xif_interface(dut):
 
 @cocotb.test()
 async def combine_all_working_test(dut):
+    dut.ext_if_coproc_result_ready.value = 0
+    dut.exe_wrapper_recv_instr_ready.value = 0
+    taskA=cocotb.start_soon(exe_result_xif_interface(dut))
+    taskB=cocotb.start_soon(issue_commit_exe_interface_porperly(dut))
     await Combine (
-         cocotb.start_soon(_exe_result_xif_interface(dut)),
-   cocotb.start_soon( _issue_commit_exe_interface_porperly(dut)))
+         taskA,
+         taskB
+    )

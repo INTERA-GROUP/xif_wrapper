@@ -63,6 +63,27 @@ class x_issue_resp_t:
             f"exc={fmt(self.exc)})"
         )
 
+    
+    # def __eq__(self, other):
+    #     if not isinstance(other, x_issue_resp_t):
+    #         return NotImplemented
+    #     if self.accept  == other.accept:
+    #         if self.accept  == True and other.accept == True:
+    #             for f in fields(self):
+    #                 a = getattr(self, f.name)
+    #                 b = getattr(other, f.name)
+
+    #                 # None means don't care
+    #                 if a is None or b is None:
+    #                     continue
+
+    #                 if int(a) != int(b):
+    #                     return False
+    #     else:
+    #         return False
+
+    #     return True
+
 
 instructions = [
     {
