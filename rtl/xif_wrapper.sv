@@ -82,7 +82,7 @@ import cvxif_instr_pkg::*;
       .rs_valid_mask (rs_valid_mask)
   );
 
-  assign xif_issue_if.issue_resp.accept    = resp_instr_predecoder.accept & xif_issue_if.issue_valid; // If not valid, accept should be 0 even if predecoder raises it to 1, to avoid accepting transactions that are not happening
+  assign xif_issue_if.issue_resp.accept    = resp_instr_predecoder.accept;
   assign xif_issue_if.issue_resp.writeback = resp_instr_predecoder.writeback;
   assign xif_issue_if.issue_resp.dualwrite = resp_instr_predecoder.dualwrite;
   assign xif_issue_if.issue_resp.dualread  = resp_instr_predecoder.dualread;

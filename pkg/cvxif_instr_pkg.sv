@@ -1,6 +1,8 @@
 // Author: Gonzalo Salinas Hernando <gonzalo.salinas@nvision.es>
 // Description: Package required for the co-pro in the x-if interface
 // Includes handy structures, some parameters and the resp to instr. req
+`include "config_xif.svh"
+
 
 package cvxif_instr_pkg;
 
