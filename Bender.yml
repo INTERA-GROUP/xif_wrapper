@@ -1,0 +1,49 @@
+package:
+  name: my-hw-project
+  authors:
+    - "Your Name"
+
+dependencies:
+  common_cells:
+    git: https://github.com/pulp-platform/common_cells.git
+    rev: cf08cc1068e782638185b8316e1ebc0ef90596e7
+
+
+
+vendor_package:
+    # package name
+  - name: cv32e40x
+    # target directory
+    target_dir: tb/setup/cv32e40x
+    # upstream dependency (i.e. git repository similar to dependencies, only supports commit hash)
+    upstream: { git: "https://github.com/openhwgroup/cv32e40x.git", rev: "f17028f2369373d9443e4636f2826218e8d54e0f" }
+    # paths to include from upstream dependency. Per default, all paths are included. Optional.
+    include_from_upstream:
+      - "rtl/include/cv32e40x_pkg.sv"
+      - "rtl/if_xif.sv"
+    # paths to exclude from upstream dependency. Paths that also match a pattern in include_from_upstream are excluded. Optional.
+    exclude_from_upstream:
+      - "ci/*"
+
+
+
+sources:
+
+  - pkg/cvxif_instr_pkg.sv
+  - pkg/if_xif_exe.sv
+  - rtl/instr_predecoder/instr_predecoder.sv
+  - rtl/xif_wrapper.sv
+
+
+  - target: tb_standalone
+    files:
+      - tb/setup/cv32e40x/rtl/include/cv32e40x_pkg.sv
+      - tb/setup/cv32e40x/rtl/if_xif.sv
+      - tb/tb_wrapper/wrapper_xif_wrapper.sv
+  
+    include_dirs:
+      - pkg
+  
+
+
+    
