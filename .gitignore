@@ -15,3 +15,4 @@ xrun*
 result*
 build.*
 *.log
+Bender.lock

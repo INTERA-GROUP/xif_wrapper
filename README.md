@@ -148,3 +148,39 @@ Defines the communication between the **XIF wrapper** and the **execution block*
 | `exe_wrapper_recv_instr_ready` | E → W | Execution ready to accept instruction |
 | `exe_wrapper_result` (`x_issue_fifo_res_t`) | E → W | Execution result (writeback, status, exception) |
 | `wrapper_exe_recv_result_ready` | W → E | Wrapper ready to accept result |
+
+
+
+## Simulation Setup
+
+### 1. Setup environment
+
+```bash
+make venv
+```
+
+---
+
+### 2. Update dependencies (Bender)
+
+```bash
+bender update
+```
+
+---
+
+### 3. Generate file list (optional check)
+
+```bash
+bender script --target tb_standalone flist
+```
+
+---
+
+### 4. Run simulation
+
+```bash
+make sim SIM=verilator
+```
+
+---
