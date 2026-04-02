@@ -10,3 +10,9 @@ utils/cocotb_lib/__pycache__
 *.dat
 tb/setup/*
 xrun*
+.venv
+.bender
+result*
+build.*
+*.log
+Bender.lock

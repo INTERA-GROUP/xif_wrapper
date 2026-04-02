@@ -1,4 +1,0 @@
-[submodule "utils"]
-	path = utils
-	url = git@ssh.dev.azure.com:v3/nvisiones/AIQ%20Ready/utils
-	branch = main

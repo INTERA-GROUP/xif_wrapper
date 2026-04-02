@@ -1,0 +1,15 @@
+cocotb ==  1.9.2
+cocotbext-axi
+cocotbext-uart
+cocotbext-spi
+numpy
+rich
+sphinx
+myst_parser
+sphinx_rtd_theme
+tabulate
+pyelftools
+pytest
+pyvsc
+pyuvm
+multipledispatch
