@@ -7,7 +7,7 @@
 package cvxif_instr_pkg;
 
 localparam X_NUM_RS = 3;  //2 or 3
-localparam X_ID_WIDTH = 4; // Number of bits for the instr. ID - This could match the INSTR_DEPTH of FIFO_INST
+localparam X_ID_WIDTH = `XIF_ID_WIDTH_CFG; // Instruction ID width shared with the processor packet types
 
 `ifdef XIF_X_RFR_WIDTH
     localparam X_RFR_WIDTH = `XIF_X_RFR_WIDTH; //Port for src read. Modify if double read: 64
@@ -16,7 +16,7 @@ localparam X_ID_WIDTH = 4; // Number of bits for the instr. ID - This could matc
 `endif
 
 `ifdef XIF_DUAL_REG_READ_CFG
-    localparam logic XIF_DUAL_REG_READ = 1; //enable for dual enable and disable
+    localparam logic XIF_DUAL_REG_READ = `XIF_DUAL_REG_READ_CFG; //enable for dual enable and disable
 `else
     localparam logic XIF_DUAL_REG_READ = 0;
 `endif
@@ -28,6 +28,7 @@ localparam X_RFW_WIDTH = 32; //Port for dest write. Modify if double write: 64
 typedef struct packed {
     logic [          31:0]                  instr;     // Offloaded instruction
     logic [           1:0]                  mode;      // Privilege level
+    logic [          31:0]                  hartid;    // Hart that issued the instruction
     logic [X_ID_WIDTH-1:0]                  id;        // Identification of the offloaded instruction
     logic [X_NUM_RS  -1:0][X_RFR_WIDTH-1:0] rs;        // Register file source operands for the offloaded instruction
     logic [(X_NUM_RS << XIF_DUAL_REG_READ)  -1:0]                  rs_valid;  // Validity of the register file source operand(s)
@@ -64,10 +65,10 @@ typedef struct packed{
     logic [X_RFW_WIDTH     -1:0]    result_data_exec_o; // Result data from execution block
     logic                           result_valid_exec_o; // Result valid from execution block //TODO: not necessary
     x_issue_t                       issue_exec_o; //Output from execution block
-}x_issue_fifo_res_t; 
+}x_issue_fifo_res_t;
 
 
-parameter int unsigned NbInstr_def = 6;
+parameter int unsigned NbInstr_def = 7;
 
 parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     /*  Custom Instructions Encoding
@@ -86,8 +87,8 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     */
     '{
         instr: 32'b0000000_00000_00000_010_00000_0001011,  // mlpload  md, rs1
-        mask:  32'b1111111_11111_00000_111_00000_1111111,   
-        rs_valid_mask: 'b001, 
+        mask:  32'b1111111_11111_00000_111_00000_1111111,
+        rs_valid_mask: 'b001,
         resp : '{
             accept : 1'b1,
             writeback : 1'b0,
@@ -100,8 +101,8 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     },
     '{
         instr: 32'b0000000_00000_00000_011_00000_0001011,  // mlpmac<00>[x<wid>][0]  md, rs1, rs2; 4-bit
-        mask:  32'b1111111_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 'b011, 
+        mask:  32'b1111111_00000_00000_111_00000_1111111,
+        rs_valid_mask: 'b011,
         resp : '{
             accept : 1'b1,
             writeback : 1'b0,
@@ -114,8 +115,8 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     },
     '{
         instr: 32'b0010100_00000_00000_011_00000_0001011,  // mlpmac<01>[x<wid>][0]  md, rs1, rs2; 8-bit
-        mask:  32'b1111111_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 'b011, 
+        mask:  32'b1111111_00000_00000_111_00000_1111111,
+        rs_valid_mask: 'b011,
         resp : '{
             accept : 1'b1,
             writeback : 1'b0,
@@ -128,8 +129,8 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     },
     '{
         instr: 32'b0101000_00000_00000_011_00000_0001011,  // mlpmac<10>[x<wid>][0]  md, rs1, rs2; 16-bit
-        mask:  32'b1111111_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 'b011, 
+        mask:  32'b1111111_00000_00000_111_00000_1111111,
+        rs_valid_mask: 'b011,
         resp : '{
             accept : 1'b1,
             writeback : 1'b0,
@@ -142,8 +143,8 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     },
     '{
         instr: 32'b0000000_00000_00000_100_00000_0001011,  // mlpread[0]<wid>[0][<sat>] rd, ms1, shift; Read (o-32b)
-        mask:  32'b1000000_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 'b000, 
+        mask:  32'b1000000_00000_00000_111_00000_1111111,
+        rs_valid_mask: 'b000,
         resp : '{
             accept : 1'b1,
             writeback : 1'b1,
@@ -156,8 +157,8 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
     },
     '{
         instr: 32'b1000000_00000_00000_100_00000_0001011,  // mlpread[1]<wid>[0][<sat>] rd, ms1, shift; Read + Clear (o-32b)
-        mask:  32'b1000000_00000_00000_111_00000_1111111,   
-        rs_valid_mask: 'b000, 
+        mask:  32'b1000000_00000_00000_111_00000_1111111,
+        rs_valid_mask: 'b000,
         resp : '{
             accept : 1'b1,
             writeback : 1'b1,
@@ -167,6 +168,22 @@ parameter copro_issue_resp_t CoproInstr_def[NbInstr_def] = '{
             ecswrite : 1'b0,
             exc : 1'b0
         }
+    },
+      // MAC: rd = rs3 + (rs1 * rs2)
+    '{
+        instr: 32'b0000000_00000_00000_111_00000_0001011,
+        mask: 32'b0000011_00000_00000_111_00000_1111111,
+        rs_valid_mask: 3'b111,
+        resp : '{
+            accept    : 1'b1,
+            writeback : 1'b1,
+            dualwrite : 1'b0,
+            dualread  : '0,
+            loadstore : 1'b0,
+            ecswrite  : 1'b0,
+            exc       : 1'b0
+        }
     }
+
 };
 endpackage
