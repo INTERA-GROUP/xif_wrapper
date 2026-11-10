@@ -33,6 +33,7 @@ sources:
   - pkg/if_xif_exe.sv
   - rtl/instr_predecoder/instr_predecoder.sv
   - rtl/xif_wrapper.sv
+  - pkg/cvxif_v1_pkg.sv
 
 
   - target: tb_standalone
