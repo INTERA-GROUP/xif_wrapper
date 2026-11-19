@@ -4,7 +4,7 @@ module tb_xif_wrapper_v1 #(
   parameter int NUM_INSTRUCTIONS = 25,
   parameter int BUFFER_DEPTH     = 20
 );
-  typedef cvxif_v1_pkg::id_t id_t;
+  typedef cvxif_instr_pkg::id_t id_t;
   localparam logic [31:0] HART = 32'h12;
   localparam int MAX_CYCLES = NUM_INSTRUCTIONS * 20;
 
@@ -30,17 +30,16 @@ module tb_xif_wrapper_v1 #(
   int expected_results  = 0;
   bit issue_waiting, result_held;
 
-  cvxif_v1_pkg::x_issue_req_t  issue_req;
-  cvxif_v1_pkg::x_issue_resp_t issue_resp;
-  cvxif_v1_pkg::x_register_t   register_data;
-  cvxif_v1_pkg::x_commit_t     commit_data;
-  cvxif_v1_pkg::x_result_t     result_data, held_result;
+  cvxif_instr_pkg::x_issue_req_v1_t  issue_req;
+  cvxif_instr_pkg::x_issue_resp_v1_t issue_resp;
+  cvxif_instr_pkg::x_register_v1_t   register_data;
+  cvxif_instr_pkg::x_commit_v1_t     commit_data;
+  cvxif_instr_pkg::x_result_v1_t     result_data, held_result;
   if_xif_exe exe_if();
 
   always #5 clk = ~clk;
 
   xif_wrapper #(
-    .ISSUE_REGISTER_SPLIT (1'b1),
     .INSTR_DEPTH          (BUFFER_DEPTH)
   ) dut (
     .clk_i              (clk),
@@ -243,6 +242,7 @@ module tb_xif_wrapper_v1 #(
   endtask
 
   initial begin
+    check(-1, cvxif_instr_pkg::X_ISSUE_REGISTER_SPLIT, "this TB uses split issue/register mode");
     check(-1, NUM_INSTRUCTIONS > BUFFER_DEPTH, "send more instructions than buffer slots");
     check(-1, NUM_INSTRUCTIONS <= 2 ** $bits(id_t), "not enough ID bits for this test");
     $display("CONFIG: instructions=%0d buffer_depth=%0d id_bits=%0d",

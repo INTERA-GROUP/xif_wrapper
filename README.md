@@ -39,13 +39,21 @@ A hart is a hardware thread of the processor, with its own sequence of instructi
 
 In split mode, register transfers may arrive in a different order from issue, and registers and commit may arrive in either order. In non split mode, the required matching register values must be valid before issue is accepted.
 
-The supplied configuration uses **4-bit instruction IDs, three source registers and 32-bit data**. Processor packets are defined in [`cvxif_v1_pkg.sv`](pkg/cvxif_v1_pkg.sv); instruction and execution types are defined in [`cvxif_instr_pkg.sv`](pkg/cvxif_instr_pkg.sv). Keep their widths consistent and compile both packages before the interface and RTL modules.
+The original execution types remain in [`cvxif_instr_pkg.sv`](pkg/cvxif_instr_pkg.sv). The CPU packet types for v1.0 are defined in the same package, with names ending in `_v1_t`. Set their defaults in [`config_xif.svh`](pkg/config_xif.svh): ID width, register widths, number of source registers and harts, and issue/register mode. The supplied configuration uses **4-bit IDs, three source registers and 32-bit data**. `XIF_ISSUE_REGISTER_SPLIT_CFG` selects the default mode. Compile the package before the interface and RTL modules.
 
 ## Instruction Predecoder
 
 The [`instr_predecoder`](rtl/instr_predecoder/instr_predecoder.sv) is combinational. It compares each instruction against the encodings and masks in `CoproInstr`, then provides the decoder response and required register mask. An instruction with no match is rejected.
 
 To add an instruction, add its encoding, mask, register requirements and response to `CoproInstr_def`, and update `NbInstr_def`. For a custom table, pass `CoproInstr` and its size through `NbInstr`. Keep encoding masks from overlapping and implement the operation in the execution block.
+
+## Limitations
+
+- **Execution order:** the wrapper sends the ready instruction in the lowest indexed collection slot. A newer instruction can reach the accelerator before an older one if its register values and commit are ready first. Execution in issue order is not guaranteed
+- **64-bit data:** 64-bit register values and results (`X_RFR_WIDTH` / `X_RFW_WIDTH` = `64`) are not supported. The current implementation uses 32-bit data
+- **Dual register operations:** dual register read and dual writeback are not supported
+- **Compressed instructions:** there is no compressed instruction interface
+- **Extension context status:** `accept` does not check `mstatus.XS` when deciding whether to accept an instruction
 
 ## Run the Testbench
 

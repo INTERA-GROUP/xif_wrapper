@@ -17,7 +17,7 @@ import cvxif_instr_pkg:: copro_issue_resp_t;
   input  logic          issue_ready_i,  
   input  x_issue_req_t  x_issue_req_i,
   output x_issue_resp_t x_issue_resp_o,
-  output logic [(X_NUM_RS << XIF_DUAL_REG_READ)  -1:0]    rs_valid_mask
+  output cvxif_instr_pkg::readregflags_t rs_valid_mask
 );
 
 logic [NbInstr-1:0] sel; //Selector 

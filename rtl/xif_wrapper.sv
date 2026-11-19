@@ -11,17 +11,17 @@ module xif_wrapper
   import cvxif_instr_pkg::*;
 #(
   parameter int unsigned        XIF_NUM_RS             = X_NUM_RS,
-  parameter bit                 ISSUE_REGISTER_SPLIT   = 1'b0,
-  parameter type                xif_hartid_t           = logic [31:0],
-  parameter type                xif_issue_req_t        = cvxif_v1_pkg::x_issue_req_t,
-  parameter type                xif_issue_resp_t       = cvxif_v1_pkg::x_issue_resp_t,
-  parameter type                xif_register_t         = cvxif_v1_pkg::x_register_t,
-  parameter type                xif_commit_t           = cvxif_v1_pkg::x_commit_t,
-  parameter type                xif_result_t           = cvxif_v1_pkg::x_result_t,
+  parameter bit                 ISSUE_REGISTER_SPLIT   = X_ISSUE_REGISTER_SPLIT,
+  parameter type                xif_hartid_t           = hartid_t,
+  parameter type                xif_issue_req_t        = cvxif_instr_pkg::x_issue_req_v1_t,
+  parameter type                xif_issue_resp_t       = cvxif_instr_pkg::x_issue_resp_v1_t,
+  parameter type                xif_register_t         = cvxif_instr_pkg::x_register_v1_t,
+  parameter type                xif_commit_t           = cvxif_instr_pkg::x_commit_v1_t,
+  parameter type                xif_result_t           = cvxif_instr_pkg::x_result_v1_t,
   parameter int unsigned        NbInstr                = NbInstr_def,
   parameter copro_issue_resp_t  CoproInstr [NbInstr]   = CoproInstr_def,
   parameter int unsigned        INSTR_DEPTH            = 20,  // max in flight instructions at any time
-  parameter int unsigned        XIF_NUM_HARTS          = cvxif_v1_pkg::X_NUM_HARTS
+  parameter int unsigned        XIF_NUM_HARTS          = cvxif_instr_pkg::X_NUM_HARTS
 ) (
   input  logic            clk_i,
   input  logic            rst_ni,
@@ -53,29 +53,8 @@ module xif_wrapper
 );
 
   // --------------------------------------------------------------------------
-  // Configuration checks and data types
+  // Data types
   // --------------------------------------------------------------------------
-
-  // Width alignment check: rs_valid_mask vs register_read
-  // Two packages define the width of the per-register-source valid mask differently
-  // cvxif_instr_pkg uses (X_NUM_RS << XIF_DUAL_REG_READ), which doubles the count when dual-read is
-  // enabled
-  // cvxif_v1_pkg uses the additive form (X_NUM_RS + X_DUALREAD)
-  // With dual-read off both give X_NUM_RS = 3, so there's no problem in the default config
-  // But if someone enables dual-read in one package without touching the other, the widths diverge
-  // silently
-  // This check turns that into a hard elaboration error so you catch it before
-  // spending time debugging mismatched bit fields
-  localparam int unsigned RSVMASK_W  = X_NUM_RS << XIF_DUAL_REG_READ;
-  localparam int unsigned REGRREAD_W = cvxif_v1_pkg::X_NUM_RS + cvxif_v1_pkg::X_DUALREAD;
-
-  if (RSVMASK_W != REGRREAD_W) begin : gen_width_check
-    $error(
-      "xif_wrapper: rs_valid_mask width (%0d) != register_read width (%0d). Check XIF_DUAL_REG_READ vs X_DUALREAD across packages.",
-      RSVMASK_W,
-      REGRREAD_W
-    );
-  end
 
   // Collection buffer entry type
   // It has three compartments, one per channel, and a flag on each saying "this one arrived"
@@ -88,7 +67,7 @@ module xif_wrapper
     logic           xreq_ready;     // issue channel received
     logic           xreg_ready;     // register values received
     logic           xcommit_ready;  // commit received
-    x_issue_resp_t  xresp;          // predecoder answer, latched at issue time
+    x_issue_resp_t   xresp;          // predecoder answer, latched at issue time
   } collected_values_t;
 
   localparam int unsigned ENTRY_IDX_WIDTH = (INSTR_DEPTH > 1) ? $clog2(INSTR_DEPTH) : 1;
@@ -261,8 +240,8 @@ module xif_wrapper
   assign decode_x_issue_req_i.ecs       = '0;
   assign decode_x_issue_req_i.ecs_valid = 1'b0;
 
-  x_issue_resp_t        resp_instr_predecoder;
-  logic [RSVMASK_W-1:0] rs_valid_mask;
+  x_issue_resp_t resp_instr_predecoder;
+  readregflags_t rs_valid_mask;
 
   // --------------------------------------------------------------------------
   // Instruction predecoder
@@ -274,8 +253,7 @@ module xif_wrapper
   // the execution request
   instr_predecoder #(
     .NbInstr    (NbInstr),
-    .CoproInstr (CoproInstr),
-    .X_NUM_RS   (X_NUM_RS)
+    .CoproInstr (CoproInstr)
   ) instr_decoder_i (
     .clk_i          (clk_i),
     .issue_valid_i  (x_issue_valid_i),
@@ -286,7 +264,7 @@ module xif_wrapper
   );
   assign x_issue_resp_o.accept        = resp_instr_predecoder.accept;
   assign x_issue_resp_o.writeback     = resp_instr_predecoder.writeback;
-  assign x_issue_resp_o.register_read = REGRREAD_W'(rs_valid_mask);
+  assign x_issue_resp_o.register_read = rs_valid_mask;
 
   // --------------------------------------------------------------------------
   // Collection buffer scan

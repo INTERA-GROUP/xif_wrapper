@@ -1,4 +1,5 @@
 // Author: Gonzalo Salinas Hernando <gonzalo.salinas@nvision.es>
+// Adapted by: Maryana Pyzh <maryana.pyzh@irvmic.com>
 // Description: Package required for the co-pro in the x-if interface
 // Includes handy structures, some parameters and the resp to instr. req
 `include "config_xif.svh"
@@ -6,8 +7,13 @@
 
 package cvxif_instr_pkg;
 
-localparam X_NUM_RS = 3;  //2 or 3
+localparam X_NUM_RS = `XIF_NUM_RS_CFG;  //2 or 3
 localparam X_ID_WIDTH = `XIF_ID_WIDTH_CFG; // Instruction ID width shared with the processor packet types
+localparam int unsigned X_NUM_HARTS    = `XIF_NUM_HARTS_CFG;
+localparam int unsigned X_HARTID_WIDTH = `XIF_HARTID_WIDTH_CFG;
+localparam int unsigned X_DUALREAD     = `XIF_DUAL_REG_READ_CFG;
+localparam int unsigned X_DUALWRITE    = `XIF_DUAL_REG_WRITE_CFG;
+localparam bit X_ISSUE_REGISTER_SPLIT  = `XIF_ISSUE_REGISTER_SPLIT_CFG;
 
 `ifdef XIF_X_RFR_WIDTH
     localparam X_RFR_WIDTH = `XIF_X_RFR_WIDTH; //Port for src read. Modify if double read: 64
@@ -21,17 +27,17 @@ localparam X_ID_WIDTH = `XIF_ID_WIDTH_CFG; // Instruction ID width shared with t
     localparam logic XIF_DUAL_REG_READ = 0;
 `endif
 
-localparam X_RFW_WIDTH = 32; //Port for dest write. Modify if double write: 64
+localparam X_RFW_WIDTH = `XIF_X_RFW_WIDTH; //Port for dest write. Modify if double write: 64
 
 // import cvxif_instr_pkg::*;
 
 typedef struct packed {
     logic [          31:0]                  instr;     // Offloaded instruction
     logic [           1:0]                  mode;      // Privilege level
-    logic [          31:0]                  hartid;    // Hart that issued the instruction
+    logic [`XIF_HARTID_WIDTH_CFG-1:0]         hartid;    // Hart that issued the instruction
     logic [X_ID_WIDTH-1:0]                  id;        // Identification of the offloaded instruction
     logic [X_NUM_RS  -1:0][X_RFR_WIDTH-1:0] rs;        // Register file source operands for the offloaded instruction
-    logic [(X_NUM_RS << XIF_DUAL_REG_READ)  -1:0]                  rs_valid;  // Validity of the register file source operand(s)
+    logic [(X_NUM_RS + `XIF_DUAL_REG_READ_CFG)  -1:0]                  rs_valid;  // Validity of the register file source operand(s)
     logic [           5:0]                  ecs;       // Extension Context Status ({mstatus.xs, mstatus.fs, mstatus.vs})
     logic                                   ecs_valid; // Validity of the Extension Context Status
 } x_issue_req_t;
@@ -56,7 +62,7 @@ typedef struct packed {
 typedef struct packed {
   logic [31:0]              instr;
   logic [31:0]              mask;
-  logic [(X_NUM_RS<< XIF_DUAL_REG_READ)-1:0]    rs_valid_mask;
+  logic [(X_NUM_RS + `XIF_DUAL_REG_READ_CFG)-1:0]    rs_valid_mask;
   x_issue_resp_t            resp;
 } copro_issue_resp_t;
 
@@ -66,6 +72,44 @@ typedef struct packed{
     logic                           result_valid_exec_o; // Result valid from execution block //TODO: not necessary
     x_issue_t                       issue_exec_o; //Output from execution block
 }x_issue_fifo_res_t;
+
+typedef logic [X_ID_WIDTH-1:0] id_t;
+typedef logic [X_HARTID_WIDTH-1:0] hartid_t;
+typedef logic [X_NUM_RS+X_DUALREAD-1:0] readregflags_t;
+typedef logic [X_DUALWRITE:0] writeregflags_t;
+
+typedef struct packed {
+    logic [31:0] instr;
+    hartid_t     hartid;
+    id_t         id;
+} x_issue_req_v1_t;
+
+typedef struct packed {
+    logic           accept;
+    writeregflags_t writeback;
+    readregflags_t  register_read;
+} x_issue_resp_v1_t;
+
+typedef struct packed {
+    hartid_t                            hartid;
+    id_t                                id;
+    logic [X_NUM_RS-1:0][X_RFR_WIDTH-1:0] rs;
+    readregflags_t                      rs_valid;
+} x_register_v1_t;
+
+typedef struct packed {
+    hartid_t hartid;
+    id_t     id;
+    logic    commit_kill;
+} x_commit_v1_t;
+
+typedef struct packed {
+    hartid_t                hartid;
+    id_t                    id;
+    logic [X_RFW_WIDTH-1:0] data;
+    logic [4:0]             rd;
+    writeregflags_t         we;
+} x_result_v1_t;
 
 
 parameter int unsigned NbInstr_def = 7;

@@ -33,13 +33,10 @@ sources:
   - pkg/if_xif_exe.sv
   - rtl/instr_predecoder/instr_predecoder.sv
   - rtl/xif_wrapper.sv
-  - pkg/cvxif_v1_pkg.sv
 
 
   - target: tb_standalone
     files:
-      - tb/setup/cv32e40x/rtl/include/cv32e40x_pkg.sv
-      - tb/setup/cv32e40x/rtl/if_xif.sv
       - tb/tb_wrapper/wrapper_xif_wrapper.sv
   
     include_dirs:

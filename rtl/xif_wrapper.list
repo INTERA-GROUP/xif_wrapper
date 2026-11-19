@@ -1,4 +1,3 @@
-../pkg/cvxif_v1_pkg.sv
 ../pkg/cvxif_instr_pkg.sv
 ../pkg/if_xif_exe.sv
 instr_predecoder/instr_predecoder.sv

@@ -13,8 +13,8 @@ if ! verilator --binary --timing --assert -Wno-fatal \
   --Mdir "$build_dir" \
   +incdir+pkg \
   +define+XIF_ID_WIDTH_CFG=5 \
+  +define+XIF_ISSUE_REGISTER_SPLIT_CFG=1 \
   pkg/cvxif_instr_pkg.sv \
-  pkg/cvxif_v1_pkg.sv \
   pkg/if_xif_exe.sv \
   tb/tb_wrapper/fifo_v3.sv \
   rtl/instr_predecoder/instr_predecoder.sv \
