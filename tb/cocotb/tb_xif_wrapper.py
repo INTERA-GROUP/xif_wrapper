@@ -142,6 +142,7 @@ def read_result_intf(dut):
     req.instr = int (dut.wrapper_exe_instr_issue_req_instr.value)
     req.mode = int (dut.wrapper_exe_instr_issue_req_mode.value)
     req.id = int (dut.wrapper_exe_instr_issue_req_id.value)
+    req.hartid = int(dut.wrapper_exe_instr_issue_req_hartid.value)
     req.rs = int (dut.wrapper_exe_instr_issue_req_rs.value)
     req.rs_valid = int (dut.wrapper_exe_instr_issue_req_rs_valid.value)
     req.ecs = int (dut.wrapper_exe_instr_issue_req_ecs.value)
@@ -160,6 +161,7 @@ def read_result_intf(dut):
 def read_xif_result_intf(dut):
     print(123)
     result = x_result_t()   
+    result.hartid = int(dut.ext_if_coproc_result_hartid.value)
     result.id = int(dut.ext_if_coproc_result_id.value) 
     result.data = int(dut.ext_if_coproc_result_data.value)
     result.rd = int(dut.ext_if_coproc_result_rd.value) 
@@ -183,6 +185,7 @@ async def populate_commit_interface(dut, interface_data,kill=0):
     commit_req = x_commit_t()
     commit_req.commit_kill= kill
     commit_req.id= interface_data.issue_req.id
+    commit_req.hartid = interface_data.issue_req.hartid
     await commit_bfm.send_op(1,commit_req)
 
 
@@ -235,6 +238,7 @@ async def xif_result_interface_dut(dut, interface_data, delay_cycles=1):
 
     expected_resp = x_result_t()
     expected_resp.id = interface_data.result_pkt.req.id
+    expected_resp.hartid = interface_data.result_pkt.req.hartid
     expected_resp.data = interface_data.result_pkt.result_data
     expected_resp.rd = interface_data.issue_seq.rd
     expected_resp.we = interface_data.result_pkt.resp.writeback

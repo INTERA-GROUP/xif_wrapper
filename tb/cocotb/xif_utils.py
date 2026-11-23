@@ -29,6 +29,7 @@ class x_issue_req_t:
     rs_valid:   int = 0
     ecs:        int = 0
     ecs_valid:  bool = 0
+    hartid:     int = 0
 
     def __repr__(self):
         return (
@@ -51,6 +52,7 @@ class x_issue_resp_t:
     loadstore:  Optional[bool] = None
     ecswrite:   Optional[bool] = None
     exc:        Optional[bool] = None
+    register_read: Optional[int] = None
 
     def __repr__(self):
         def fmt(val):
@@ -102,6 +104,7 @@ class x_result_t:
     exccode: int = 0
     err: bool = False
     dbg: bool = False
+    hartid: int = 0
 
     def __repr__(self):
         return (
@@ -123,6 +126,7 @@ class x_commit_t:
     # x_commit_t
     id:         int = 0
     commit_kill:  bool = 0
+    hartid:       int = 0
 
     def __repr__(self):
         return (
@@ -213,18 +217,20 @@ class xif_issue_bfm(metaclass=utility_classes.Singleton):
 
         self.dut.ext_if_coproc_issue_valid.value      = issue_valid
         self.dut.ext_if_coproc_issue_req_instr.value = req.instr
-        self.dut.ext_if_coproc_issue_req_mode.value  = req.mode
+        self.dut.ext_if_coproc_issue_req_hartid.value = req.hartid
         self.dut.ext_if_coproc_issue_req_id.value    = req.id
-        self.dut.ext_if_coproc_issue_req_rs.value    = req.rs
-        self.dut.ext_if_coproc_issue_req_rs_valid.value = req.rs_valid
-        self.dut.ext_if_coproc_issue_req_ecs.value   = req.ecs
-        self.dut.ext_if_coproc_issue_req_ecs_valid.value = req.ecs_valid
+        self.dut.ext_if_coproc_register_valid.value = issue_valid
+        self.dut.ext_if_coproc_register_hartid.value = req.hartid
+        self.dut.ext_if_coproc_register_id.value = req.id
+        self.dut.ext_if_coproc_register_rs.value = req.rs
+        self.dut.ext_if_coproc_register_rs_valid.value = req.rs_valid
 
 
     def read_output(self):
         resp = x_issue_resp_t()
         resp.accept = get_int(self.dut.ext_if_coproc_issue_resp_accept)
         resp.writeback = get_int(self.dut.ext_if_coproc_issue_resp_writeback)
+        resp.register_read = get_int(self.dut.ext_if_coproc_issue_resp_register_read)
         resp.dualwrite = get_int(self.dut.ext_if_coproc_issue_resp_dualwrite)
         resp.dualread = get_int(self.dut.ext_if_coproc_issue_resp_dualread)
         resp.loadstore = get_int(self.dut.ext_if_coproc_issue_resp_loadstore)
@@ -255,8 +261,10 @@ class xif_issue_bfm(metaclass=utility_classes.Singleton):
                         self.cmd_mon_queue.put_nowait(copy.deepcopy(interface_data))
                 except QueueEmpty:
                     self.dut.ext_if_coproc_issue_valid.value = 0
+                    self.dut.ext_if_coproc_register_valid.value = 0
             else:
                 self.dut.ext_if_coproc_issue_valid.value = 0
+                self.dut.ext_if_coproc_register_valid.value = 0
                         
                 
     
@@ -269,10 +277,11 @@ class xif_issue_bfm(metaclass=utility_classes.Singleton):
                 input_data = x_issue_req_t()
                 
                 input_data.instr     = get_int(self.dut.ext_if_coproc_issue_req_instr)
+                input_data.hartid    = get_int(self.dut.ext_if_coproc_issue_req_hartid)
                 input_data.mode      = get_int(self.dut.ext_if_coproc_issue_req_mode)
                 input_data.id        = get_int(self.dut.ext_if_coproc_issue_req_id)
-                input_data.rs        = get_int(self.dut.ext_if_coproc_issue_req_rs)
-                input_data.rs_valid  = get_int(self.dut.ext_if_coproc_issue_req_rs_valid)
+                input_data.rs        = get_int(self.dut.ext_if_coproc_register_rs)
+                input_data.rs_valid  = get_int(self.dut.ext_if_coproc_register_rs_valid)
                 input_data.ecs       = get_int(self.dut.ext_if_coproc_issue_req_ecs)
                 input_data.ecs_valid = get_int(self.dut.ext_if_coproc_issue_req_ecs_valid)
 
@@ -315,6 +324,7 @@ class xif_commit_bfm(metaclass=utility_classes.Singleton):
         self.dut.ext_if_coproc_commit_valid.value = valid
  
         self.dut.ext_if_coproc_commit_id.value = inf.id
+        self.dut.ext_if_coproc_commit_hartid.value = inf.hartid
         self.dut.ext_if_coproc_commit_kill.value = inf.commit_kill
     
     async def reset(self):
@@ -372,6 +382,7 @@ class exe_result_bfm(metaclass=utility_classes.Singleton):
         self.dut.exe_wrapper_result_issue_exec_o_req_instr.value = data.req.instr 
         self.dut.exe_wrapper_result_issue_exec_o_req_mode.value = data.req.mode 
         self.dut.exe_wrapper_result_issue_exec_o_req_id.value = data.req.id
+        self.dut.exe_wrapper_result_issue_exec_o_req_hartid.value = data.req.hartid
         self.dut.exe_wrapper_result_issue_exec_o_req_rs.value = data.req.rs
         self.dut.exe_wrapper_result_issue_exec_o_req_rs_valid.value = data.req.rs_valid
         self.dut.exe_wrapper_result_issue_exec_o_req_ecs.value = data.req.ecs
